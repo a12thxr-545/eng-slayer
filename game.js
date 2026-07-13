@@ -1,79 +1,86 @@
+function drawThaiFrame(graphics, x, y, w, h, radius = 12) {
+    graphics.fillStyle(0x2b0d06, 0.95);
+    graphics.fillRoundedRect(x, y, w, h, radius);
+    
+    graphics.lineStyle(4, 0xd4af37, 1);
+    graphics.strokeRoundedRect(x, y, w, h, radius);
+
+    graphics.lineStyle(1.5, 0xffd700, 0.75);
+    graphics.strokeRoundedRect(x + 4, y + 4, w - 8, h - 8, radius - 2);
+
+    graphics.fillStyle(0xffd700, 1);
+    graphics.fillCircle(x + 8, y + 8, 4);
+    graphics.fillCircle(x + w - 8, y + 8, 4);
+    graphics.fillCircle(x + 8, y + h - 8, 4);
+    graphics.fillCircle(x + w - 8, y + h - 8, 4);
+}
+
 class MainMenu extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenu' });
     }
 
     preload() {
-        let loadingText = this.add.text(500, 300, 'Loading Game... Please wait.', { fontFamily: '"PixelGame", Kanit', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+        let loadingText = this.add.text(500, 300, 'กำลังโหลดเกม... กรุณารอสักครู่', { fontFamily: 'Kanit, sans-serif', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
         this.load.on('complete', () => {
             loadingText.destroy();
         });
 
-        this.load.image('lvl_menu_bg', 'assets/back/bg2.png');
-        
-        // Load specific idle frames for animated title screen and character select
-        for (let i = 0; i <= 9; i++) {
-            this.load.image('k1_idle' + i, 'assets/pl/_PNG/1_KNIGHT/Knight_01__IDLE_00' + i + '.png');
-            this.load.image('k2_idle' + i, 'assets/pl/_PNG/2_KNIGHT/Knight_02__IDLE_00' + i + '.png');
-            this.load.image('k3_idle' + i, 'assets/pl/_PNG/3_KNIGHT/Knight_03__IDLE_00' + i + '.png');
-        }
+        this.load.image('lvl_menu_bg', 'assets/thai/background1.png');
     }
 
     create() {
-        let bg = this.add.image(500, 300, 'lvl_menu_bg');
-        bg.setDisplaySize(1000, 600);
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         
         let overlay = this.add.graphics();
         overlay.fillStyle(0x000000, 0.4);
         overlay.fillRect(0, 0, 1000, 600);
 
-        // Setup Animations if they don't exist globally yet
-        if (!this.anims.exists('menu_k1_idle')) {
-            this.anims.create({ key: 'menu_k1_idle', frames: Array.from({length: 10}, (_, i) => ({ key: 'k1_idle' + i })), frameRate: 15, repeat: -1 });
-            this.anims.create({ key: 'menu_k2_idle', frames: Array.from({length: 10}, (_, i) => ({ key: 'k2_idle' + i })), frameRate: 15, repeat: -1 });
-            this.anims.create({ key: 'menu_k3_idle', frames: Array.from({length: 10}, (_, i) => ({ key: 'k3_idle' + i })), frameRate: 15, repeat: -1 });
-        }
-
-
+        // Grand Thai Signboard Frame for Title & Subtitle
+        let signboard = this.add.graphics();
+        drawThaiFrame(signboard, 180, 50, 640, 250, 18);
 
         // Bouncing/Breathing Title
-        let titleBlock = this.add.container(500, 160);
+        let titleBlock = this.add.container(500, 150);
         
-        let titleText = this.add.text(0, 0, 'ENGLISH SLAYER', {
-            fontFamily: '"PixelGame", "Courier New", Courier',
-            fontSize: '96px',
-            color: '#b6ff00',
-             strokeThickness: 0
+        let titleText = this.add.text(0, 0, 'อักษรพิฆาต', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '85px',
+            fontWeight: 'bold',
+            color: '#ffd700', // Gold
+            stroke: '#4a1212', // Deep red stroke
+            strokeThickness: 12
         }).setOrigin(0.5).setShadow(6, 8, '#000000', 0, false, true);
 
         titleBlock.add(titleText);
 
         this.tweens.add({
             targets: titleBlock,
-            y: 145, 
-            duration: 1500,
+            y: 135, 
+            duration: 1800,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
 
-        this.add.text(500, 260, 'เกมคำศัพท์พื้นฐาน', {
-            fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
-            fontSize: '44px',
+        this.add.text(500, 245, 'ศึกรามเกียรติ์คำศัพท์ภาษาอังกฤษ', {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '32px',
             color: '#ffffff',
-            strokeThickness: 0
+            stroke: '#000000',
+            strokeThickness: 6
         }).setOrigin(0.5).setShadow(4, 6, '#000000', 0, false, true);
 
         // Start Button 
-        let btnStart = createChoiceButton(this, 500, 400, 'เริ่มเล่น', () => {
-            this.scene.start('CategoryMenu', { charId: 'pl2' }); 
+        let btnStart = createChoiceButton(this, 500, 390, 'เข้าสู่ยุทธภพ (เริ่มเล่น)', () => {
+            this.scene.start('CategoryMenu', { charId: 'thai' }); 
         });
 
         // Settings Button
-        let btnSettings = createChoiceButton(this, 500, 520, 'ตั้งค่า', () => {
+        let btnSettings = createChoiceButton(this, 500, 500, 'ตั้งค่าความยาก', () => {
             this.scene.start('SettingsMenu');
         });
-}
+    }
 }
 
 class GamePlay extends Phaser.Scene {
@@ -259,206 +266,177 @@ class GamePlay extends Phaser.Scene {
             bossMaxHp: 3
         };
         this.selectedStartStage = data && data.startStageIdx !== undefined ? data.startStageIdx : 0;
-        this.gameState.charId = data && data.charId ? data.charId : 2; // Default to Knight 02 if missing
+        this.gameState.charId = 'thai';
     }
 
     preload() {
-        let loadingText = this.add.text(500, 300, 'Loading Assets...', { fontFamily: '"PixelGame", Kanit', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+        let loadingText = this.add.text(500, 300, 'กำลังโหลดทรัพยากร...', { fontFamily: 'Kanit, sans-serif', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
         this.load.on('complete', () => {
             loadingText.destroy();
         });
 
-        this.load.image('lvl_menu_bg', 'assets/back/bg2.png');
-        
-        // Match specific physical files that exist in the back folder
-        const bgFiles = ['bg2.png', 'bg8.png', 'bg9.png', 'bg10.png', 'bg11.png'];
-        bgFiles.forEach((filename, index) => {
-            this.load.image('lvl_bg' + index, 'assets/back/' + filename);
-        });
-        
-        // Load the gui2 buttons as a spritesheet (assuming 400 width, 132 height per frame for 4 rows)
-        this.load.spritesheet('btn_gui', 'assets/gui2/PNG/Buttons.png', { frameWidth: 400, frameHeight: 132 });
-        
-        // Load pl2 character assets
-        let idleIds = ['1540','1541','1542','1543','1544','1545','1546','1547'];
-        idleIds.forEach((id, i) => { this.load.image(`pl2_idle${i}`, `assets/pl2/idle/IMG_${id}.PNG`); });
-
-        // Load all dash/attack frames from assets/ef2/dash/
-        const dashIds = ['1567', '1568', '1569', '1570', '1571', '1572', '1574', '1575', '1576', '1577', '1578', '1579', '1580', '1581', '1582', '1583'];
-        dashIds.forEach((id) => {
-            this.load.image(`pl2_dash_${id}`, `assets/ef2/dash/IMG_${id}.PNG`);
-        });
-
-        let deadIds = ['1586', '1587'];
-        deadIds.forEach((id, i) => { this.load.image(`pl2_dead${i}`, `assets/pl2/dead eraser/IMG_${id}.PNG`); });
-        
-        // Single dummy frame for hurt
-        this.load.image('pl2_hurt0', `assets/pl2/dead eraser/IMG_1586.PNG`);
-
-        // Load skill frames
-        const skillIds = ['1597', '1598', '1599'];
-        skillIds.forEach(id => {
-            this.load.image(`pl2_skill_${id}`, `assets/pl2/skill/IMG_${id}.PNG`);
-        });
-
-        // Load close-effect frames
-        const closeEffectIds = ['1600', '1601', '1602'];
-        closeEffectIds.forEach(id => {
-            this.load.image(`pl2_close_${id}`, `assets/pl2/close-effect/IMG_${id}.PNG`);
-        });
-
-        // Load run frames
-        const runIds = ['1607', '1608', '1609', '1610'];
-        runIds.forEach(id => {
-            this.load.image(`pl2_run_${id}`, `assets/pl2/run/IMG_${id}.PNG`);
-        });
-
-        for (let i = 0; i <= 9; i++) {
-            this.load.image('t1_attack' + i, 'assets/en1/_PNG/1_TROLL/Troll_01_1_ATTACK_00' + i + '.png');
-            this.load.image('t1_walk' + i, 'assets/en1/_PNG/1_TROLL/Troll_01_1_WALK_00' + i + '.png');
-            this.load.image('t1_dead' + i, 'assets/en1/_PNG/1_TROLL/Troll_01_1_DIE_00' + i + '.png');
-            this.load.image('t2_attack' + i, 'assets/en1/_PNG/2_TROLL/Troll_02_1_ATTACK_00' + i + '.png');
-            this.load.image('t2_walk' + i, 'assets/en1/_PNG/2_TROLL/Troll_02_1_WALK_00' + i + '.png');
-            this.load.image('t2_dead' + i, 'assets/en1/_PNG/2_TROLL/Troll_02_1_DIE_00' + i + '.png');
-            this.load.image('t3_attack' + i, 'assets/en1/_PNG/3_TROLL/Troll_03_1_ATTACK_00' + i + '.png');
-            this.load.image('t3_walk' + i, 'assets/en1/_PNG/3_TROLL/Troll_03_1_WALK_00' + i + '.png');
-            this.load.image('t3_dead' + i, 'assets/en1/_PNG/3_TROLL/Troll_03_1_DIE_00' + i + '.png');
+        // Load Thai Backgrounds (background1.png to background6.png)
+        for (let i = 0; i < 6; i++) {
+            this.load.image('lvl_bg' + i, 'assets/thai/background' + (i + 1) + '.png');
         }
 
-        // Skeleton enemies for alternating stages
-        for (let t = 1; t <= 3; t++) {
-            for (let i = 0; i <= 23; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('s' + t + '_walk' + i, 'assets/en2/Skeleton_Crusader_' + t + '/PNG/PNG Sequences/Walking/0_Skeleton_Crusader_Walking_0' + pad + '.png');
-            }
-            for (let i = 0; i <= 11; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('s' + t + '_attack' + i, 'assets/en2/Skeleton_Crusader_' + t + '/PNG/PNG Sequences/Slashing/0_Skeleton_Crusader_Slashing_0' + pad + '.png');
-            }
-            for (let i = 0; i <= 14; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('s' + t + '_dead' + i, 'assets/en2/Skeleton_Crusader_' + t + '/PNG/PNG Sequences/Dying/0_Skeleton_Crusader_Dying_0' + pad + '.png');
-            }
+        // Load Hanuman Player frames
+        this.load.image('player_idle', 'assets/hanuman/idle/idle1.png'); // Fallback base key
+        for (let i = 1; i <= 8; i++) {
+            this.load.image('player_idle_' + i, 'assets/hanuman/idle/idle' + i + '.png');
+        }
+        for (let i = 1; i <= 6; i++) {
+            this.load.image('player_charge_' + i, 'assets/hanuman/charge/charge' + i + '.png');
+        }
+        for (let i = 1; i <= 10; i++) {
+            this.load.image('player_run_' + i, 'assets/hanuman/run/run' + i + '.png');
+        }
+        for (let i = 1; i <= 4; i++) {
+            this.load.image('player_attack_custom_' + i, 'assets/hanuman/attack/attack' + i + '.png');
         }
 
-        // Golem enemies for Stage 3
-        for (let t = 1; t <= 3; t++) {
-            for (let i = 0; i <= 17; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('g' + t + '_walk' + i, 'assets/en3/PNG/Golem_0' + t + '/PNG Sequences/Walking/Golem_0' + t + '_Walking_0' + pad + '.png');
-            }
-            for (let i = 0; i <= 11; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('g' + t + '_attack' + i, 'assets/en3/PNG/Golem_0' + t + '/PNG Sequences/Attacking/Golem_0' + t + '_Attacking_0' + pad + '.png');
-            }
-            for (let i = 0; i <= 14; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('g' + t + '_dead' + i, 'assets/en3/PNG/Golem_0' + t + '/PNG Sequences/Dying/Golem_0' + t + '_Dying_0' + pad + '.png');
-            }
+        // Load Thai Enemies and frames
+        this.load.image('enemy_yaksa', 'assets/yak/yakwalk/walk1.png'); // Fallback base key
+        for (let i = 1; i <= 10; i++) {
+            this.load.image('yaksa_walk_' + i, 'assets/yak/yakwalk/walk' + i + '.png');
         }
+        for (let i = 1; i <= 8; i++) {
+            this.load.image('yaksa_run_' + i, 'assets/yak/yakrun/run' + i + '.png');
+        }
+        this.load.image('yaksa_charge_1', 'assets/yak/yakcharge/charge1.png');
+        this.load.image('yaksa_charge_2', 'assets/yak/yakcharge/chrage2.png');
+        this.load.image('yaksa_attack_1', 'assets/yak/yakattack/attack1.png');
+        this.load.image('yaksa_attack_2', 'assets/yak/yakattack/attack2.png');
 
-        // Wraith enemies for Stage 4
-        for (let t = 1; t <= 3; t++) {
-            for (let i = 0; i <= 11; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('w' + t + '_walk' + i, 'assets/en4/PNG/Wraith_0' + t + '/PNG Sequences/Walking/Wraith_0' + t + '_Moving Forward_0' + pad + '.png');
-                this.load.image('w' + t + '_attack' + i, 'assets/en4/PNG/Wraith_0' + t + '/PNG Sequences/Attacking/Wraith_0' + t + '_Attack_0' + pad + '.png');
-            }
-            for (let i = 0; i <= 14; i++) {
-                let pad = i < 10 ? '0' + i : i;
-                this.load.image('w' + t + '_dead' + i, 'assets/en4/PNG/Wraith_0' + t + '/PNG Sequences/Dying/Wraith_0' + t + '_Dying_0' + pad + '.png');
-            }
-        }
-        
+
+        // Load Spells and Explosions
         for (let i = 1; i <= 8; i++) {
             let pI = i < 10 ? '0' + i : i;
             this.load.image('ef_fireball' + i, 'assets/ef2/Fire Ball/PNG/Fire Ball_Frame_' + pI + '.png');
             this.load.image('ef_firearrow' + i, 'assets/ef2/Fire Arrow/PNG/Fire Arrow_Frame_' + pI + '.png');
         }
-        for (let i = 1; i <= 12; i++) {
-            let pI = i < 10 ? '0' + i : i;
-            this.load.image('ef_waterball' + i, 'assets/ef2/Water Ball/PNG/Water Ball_Frame_' + pI + '.png');
-        }
         for (let i = 1; i <= 10; i++) {
             this.load.image('ef3_exp' + i, 'assets/ef3/PNG/Explosion/Explosion' + i + '.png');
-            this.load.image('ef3_blue' + i, 'assets/ef3/PNG/Explosion_blue_circle/Explosion_blue_circle' + i + '.png');
-            this.load.image('ef3_nuke' + i, 'assets/ef3/PNG/Nuclear_explosion/Nuclear_explosion' + i + '.png');
         }
 
         // Lightning for player death
         for (let i = 1; i <= 5; i++) this.load.image('lt_b' + i, 'assets/ef3/PNG/Lightning/Lightning_beginning' + i + '.png');
         for (let i = 1; i <= 6; i++) this.load.image('lt_c' + i, 'assets/ef3/PNG/Lightning/Lightning_cycle' + i + '.png');
         for (let i = 1; i <= 3; i++) this.load.image('lt_e' + i, 'assets/ef3/PNG/Lightning/Lightning_end' + i + '.png');
+
         // Initialize Base Stats
         this.gameState.maxHp = 3;
         this.gameState.hp = 3;
         this.gameState.currentStageIdx = this.selectedStartStage;
         this.gameState.scoreInStage = 0;
-
     }
 
     playerTakeDamage() {
-        this.game.loop.targetFps = 60; // Restore standard framerate on damage/gameover
         if (this.gameState.isGameOver) return;
         this.gameState.hp--;
         this.updateHpBar();
         
         // Flash screen red
-        let dmgOverlay = this.add.graphics().fillStyle(0xff0000, 0.3).fillRect(0,0,1000,600);
+        let dmgOverlay = this.add.graphics().fillStyle(0xff0000, 0.45).fillRect(0,0,1000,600).setDepth(20);
         this.tweens.add({ targets: dmgOverlay, alpha: 0, duration: 400, onComplete: ()=>dmgOverlay.destroy() });
 
-        if (this.gameState.hp <= 0) {
-            this.gameState.isGameOver = true;
-            this.gameState.player.play(this.gameState.animHurt);
-            let doom = this.add.sprite(this.gameState.player.x, this.gameState.player.y - 160, 'lt_b1').setOrigin(0.5).setDepth(20);
-            doom.setScale(2.5); 
-            doom.play('ef_lightning');
-            doom.once('animationcomplete', () => { 
-                doom.destroy(); 
-                this.gameOver();
-            });
-        } else {
-            // Take hit but survive
-            this.gameState.player.play(this.gameState.animHurt);
-            this.cameras.main.shake(200, 0.01);
-            
-            // Fade out the current enemy and spawn a fresh one for the next question
-            this.tweens.add({
-                targets: this.gameState.zombie,
-                alpha: 0,
-                duration: 600,
-                onComplete: () => {
-                    this.gameState.player.play(this.gameState.animIdle);
-                    this.gameState.isAnimating = false;
-                    this.nextQuiz(true); // pass true or false doesn't matter, force new question
+        // Stop current idle breathing and sway tweens
+        if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+        if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
+
+        // Flash player red
+        this.gameState.player.setTint(0xff3333);
+        this.cameras.main.shake(250, 0.02);
+
+        // Knockback animation
+        this.tweens.add({
+            targets: this.gameState.player,
+            x: 130,
+            angle: -25,
+            duration: 150,
+            yoyo: true,
+            repeat: 0,
+            onComplete: () => {
+                this.gameState.player.clearTint();
+                this.gameState.player.setAngle(0);
+                this.gameState.player.setX(200);
+
+                if (this.gameState.hp <= 0) {
+                    this.gameState.isGameOver = true;
+                    
+                    // Advanced death animation: spin and float up then crash down
+                    if (this.gameState.auraParticles) this.gameState.auraParticles.stop();
+                    if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.stop();
+                    if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.stop();
+                    if (this.gameState.flareTimer) this.gameState.flareTimer.destroy();
+                    
+                    this.tweens.add({
+                        targets: this.gameState.player,
+                        y: 320,
+                        angle: -360,
+                        scaleX: 0.25,
+                        scaleY: 0.25,
+                        duration: 600,
+                        ease: 'Quad.easeOut',
+                        onComplete: () => {
+                            // Crash down
+                            this.tweens.add({
+                                targets: this.gameState.player,
+                                y: 480,
+                                angle: -90,
+                                duration: 250,
+                                ease: 'Bounce.easeOut',
+                                onComplete: () => {
+                                    this.gameState.player.setTint(0x333333);
+                                    
+                                    // Lightning strike on body
+                                    let doom = this.add.sprite(this.gameState.player.x, this.gameState.player.y - 120, 'lt_b1').setOrigin(0.5).setDepth(20).setScale(3);
+                                    doom.play('ef_lightning');
+                                    doom.once('animationcomplete', () => { 
+                                        doom.destroy(); 
+                                        this.gameOver();
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                    if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+
+                    // Fade out the current enemy and spawn a fresh one for the next question
+                    this.tweens.add({
+                        targets: this.gameState.zombie,
+                        alpha: 0,
+                        duration: 600,
+                        onComplete: () => {
+                            this.gameState.isAnimating = false;
+                            this.nextQuiz();
+                        }
+                    });
                 }
-            });
-        }
+            }
+        });
     }
 
     create() {
-        let safeBgIdx = this.gameState.currentStageIdx % 5;
-        this.gameState.bg = this.add.image(500, 300, 'lvl_bg' + safeBgIdx);
-        this.gameState.bg.setDisplaySize(1000, 600);
+        let safeBgIdx = this.gameState.currentStageIdx % 6;
+        this.gameState.bg = this.add.image(500, 300, 'lvl_bg' + safeBgIdx).setDisplaySize(1000, 600);
 
-        // --- STYLIZED RPG HUD ---
+        // --- STYLIZED RPG HUD (Thai Red/Gold Design) ---
         
         // 1. Player Info Frame (Top Left)
         let hudFrame = this.add.graphics();
-        hudFrame.fillStyle(0x222222, 0.85);
-        hudFrame.fillRoundedRect(15, 15, 300, 80, 12);
-        hudFrame.lineStyle(4, 0x51b87a);
-        hudFrame.strokeRoundedRect(15, 15, 300, 80, 12);
+        drawThaiFrame(hudFrame, 15, 15, 300, 80, 12);
         
-        // Avatar
-        let avatarKey = this.gameState.charId === 'pl2' ? 'pl2_idle0' : `k${this.gameState.charId}_idle0`;
-        this.add.image(55, 55, avatarKey).setScale(0.18).setOrigin(0.5);
+        // Avatar (Hanuman)
+        let avatar = this.add.image(55, 55, 'player_idle').setScale(0.08).setOrigin(0.5);
         
         // HP Label
-        this.add.text(100, 35, 'HP', { fontFamily: 'Kanit', fontSize: '26px', color: '#ff5555', padding: { top: 5, bottom: 5 } });
+        this.add.text(100, 35, 'HP', { fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#ffea00', padding: { top: 5, bottom: 5 } });
 
         // Health Bar Implementation
-        let hpBg = this.add.graphics().fillStyle(0x440000, 1).fillRect(140, 42, 140, 20);
+        let hpBg = this.add.graphics().fillStyle(0x5c0905, 1).fillRect(140, 42, 140, 20);
         this.gameState.hpBar = this.add.graphics();
         this.updateHpBar = () => {
             this.gameState.hpBar.clear();
@@ -468,32 +446,24 @@ class GamePlay extends Phaser.Scene {
         };
         this.updateHpBar();
         
-        // Removed Exp Bar as requested
-
         // 2. Stage/Level Box (Center)
         let stageFrame = this.add.graphics();
-        stageFrame.fillStyle(0x111111, 0.85);
-        stageFrame.fillRoundedRect(350, 15, 300, 45, 10);
-        stageFrame.lineStyle(2, 0x51b87a);
-        stageFrame.strokeRoundedRect(350, 15, 300, 45, 10);
+        drawThaiFrame(stageFrame, 350, 15, 300, 45, 10);
 
         this.gameState.stageText = this.add.text(500, 36, this.gameState.vocabData[this.gameState.currentStageIdx].stageName, {
-            fontFamily: 'Kanit', fontSize: '28px', color: '#ffffff', padding: { top: 10, bottom: 10 }
+            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '24px', color: '#ffffff', padding: { top: 10, bottom: 10 }
         }).setOrigin(0.5);
 
         // 3. Score & Settings Box (Top Right)
         let scoreFrame = this.add.graphics();
-        scoreFrame.fillStyle(0x222222, 0.85);
-        scoreFrame.fillRoundedRect(720, 15, 200, 50, 10);
-        scoreFrame.lineStyle(4, 0x51b87a);
-        scoreFrame.strokeRoundedRect(720, 15, 200, 50, 10);
+        drawThaiFrame(scoreFrame, 720, 15, 200, 50, 10);
         
         this.gameState.scoreText = this.add.text(820, 40, 'SCORE: 0', {
-            fontFamily: '"PixelGame", Kanit', fontSize: '28px', color: '#ffea00'
+            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#ffd700'
         }).setOrigin(0.5);
 
         // Pause Button
-        let pauseBtn = this.add.text(960, 40, '⏸', { fontSize: '40px', color: '#ffffff' })
+        let pauseBtn = this.add.text(960, 40, '⏸', { fontSize: '40px', color: '#ffd700' })
             .setOrigin(0.5)
             .setInteractive({useHandCursor: true});
 
@@ -504,242 +474,201 @@ class GamePlay extends Phaser.Scene {
             this.scene.launch('PauseMenu');
         });
 
-        this.gameState.wordText = this.add.text(500, 155, 'Start', { 
-            fontSize: '65px', 
-            fontFamily: 'Mitr', 
+        // Wood texture Sign for current word
+        let wordSign = this.add.graphics();
+        drawThaiFrame(wordSign, 300, 115, 400, 80, 15);
+
+        this.gameState.wordText = this.add.text(500, 155, 'เริ่มศึก', { 
+            fontSize: '56px', 
+            fontFamily: 'Mitr, Kanit, sans-serif', 
             fontWeight: 'bold',
-            color: '#ffffff',
+            color: '#ffd700',
             stroke: '#000000',
-            strokeThickness: 10,
+            strokeThickness: 8,
             padding: { top: 15, bottom: 15 }
         }).setOrigin(0.5);
 
-        // Setup Player Animation (pl2 eraser)
-        this.gameState.animIdle = `pl2_idle`;
-        this.gameState.animAttack = `pl2_attack`;
-        this.gameState.animDead = `pl2_dead`;
-        this.gameState.animHurt = `pl2_hurt`;
+        // Setup Player (Hanuman) - starts at far left
+        this.gameState.player = this.add.sprite(130, 427, 'player_idle').setOrigin(0.5, 1).setDepth(2);
+        this.gameState.player.setScale(1.2);
 
-        if (!this.anims.exists(this.gameState.animIdle)) {
-            this.anims.create({
-                key: this.gameState.animIdle,
-                frames: Array.from({length: 8}, (_, i) => ({ key: `pl2_idle${i}` })),
-                frameRate: 2.5, // Reduced to 1 frame per second
-                repeat: -1
-            });
-        }
+        // Gold Aura Foot Particles
+        this.gameState.auraParticles = this.add.particles(200, 475, 'ef_fireball1', {
+            scale: { start: 0.08, end: 0 },
+            speedY: { min: -120, max: -40 },
+            speedX: { min: -25, max: 25 },
+            lifespan: 800,
+            alpha: { start: 0.6, end: 0 },
+            tint: 0xffd700, // Golden aura
+            blendMode: 'ADD',
+            frequency: 120
+        }).setDepth(1);
 
-        // Projectile skill animation
-        if (!this.anims.exists('pl2_skill_anim')) {
-            this.anims.create({
-                key: 'pl2_skill_anim',
-                frames: [
-                    { key: 'pl2_skill_1597' },
-                    { key: 'pl2_skill_1598' },
-                    { key: 'pl2_skill_1599' }
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
-        }
+        // Breathing Idle Tween (scale only, no Y movement)
+        this.gameState.playerIdleTween = this.tweens.add({
+            targets: this.gameState.player,
+            scaleY: 1.26,
+            scaleX: 1.14,
+            duration: 1100,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
 
-        // Close-effect hit animation
-        if (!this.anims.exists('pl2_close_effect_anim')) {
-            this.anims.create({
-                key: 'pl2_close_effect_anim',
-                frames: [
-                    { key: 'pl2_close_1600' },
-                    { key: 'pl2_close_1601' },
-                    { key: 'pl2_close_1602' }
-                ],
-                frameRate: 15,
-                repeat: 0
-            });
-        }
+        // Stance Sway Tween (Weapon angle sway only, no horizontal drifting)
+        this.gameState.playerSwayTween = this.tweens.add({
+            targets: this.gameState.player,
+            angle: 4,
+            duration: 2200,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
 
-        // Run animation
-        if (!this.anims.exists('pl2_run_anim')) {
-            this.anims.create({
-                key: 'pl2_run_anim',
-                frames: [
-                    { key: 'pl2_run_1607' },
-                    { key: 'pl2_run_1608' },
-                    { key: 'pl2_run_1609' },
-                    { key: 'pl2_run_1610' }
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
-        }
-        // 1. Charge animation
-        if (!this.anims.exists('pl2_charge')) {
-            this.anims.create({
-                key: 'pl2_charge',
-                frames: [{ key: 'pl2_dash_1572' }],
-                frameRate: 15,
-                repeat: 0
-            });
-        }
+        // Periodic Combat Stance Flare (Surges gold energy ring every 6 seconds)
+        this.gameState.flareTimer = this.time.addEvent({
+            delay: 6000,
+            loop: true,
+            callback: () => {
+                if (this.gameState.isAnimating || this.gameState.isGameOver) return;
 
-        // 2. Dash animation
-        if (!this.anims.exists('pl2_dash_anim')) {
-            this.anims.create({
-                key: 'pl2_dash_anim',
-                frames: [
-                    { key: 'pl2_dash_1574' },
-                    { key: 'pl2_dash_1575' },
-                    { key: 'pl2_dash_1576' }
-                ],
-                frameRate: 15,
-                repeat: -1
-            });
-        }
+                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+                if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
-        // 3. Melee attack animations
-        const meleeFrames = ['1577', '1578', '1580', '1581', '1583'];
-        meleeFrames.forEach(id => {
-            if (!this.anims.exists(`pl2_melee_${id}`)) {
-                this.anims.create({
-                    key: `pl2_melee_${id}`,
-                    frames: [{ key: `pl2_dash_${id}` }],
-                    frameRate: 15,
-                    repeat: 0
+                this.tweens.add({
+                    targets: this.gameState.player,
+                    scaleY: 0.96,
+                    scaleX: 1.3,
+                    angle: -8,
+                    duration: 250,
+                    yoyo: true,
+                    repeat: 0,
+                    ease: 'Quad.easeInOut',
+                    onComplete: () => {
+                        this.cameras.main.shake(100, 0.005);
+
+                        let ring = this.add.circle(this.gameState.player.x, this.gameState.player.y - 45, 20).setStrokeStyle(4, 0xffd700).setDepth(1);
+                        this.tweens.add({
+                            targets: ring,
+                            radius: 80,
+                            alpha: 0,
+                            duration: 350,
+                            onComplete: () => ring.destroy()
+                        });
+
+                        let burst = this.add.particles(this.gameState.player.x, this.gameState.player.y - 20, 'ef_fireball1', {
+                            scale: { start: 0.12, end: 0 },
+                            speed: { min: 80, max: 200 },
+                            lifespan: 400,
+                            alpha: { start: 0.8, end: 0 },
+                            tint: 0xffd700,
+                            blendMode: 'ADD',
+                            maxParticles: 15
+                        }).setDepth(1);
+
+                        this.tweens.add({
+                            targets: this.gameState.player,
+                            scaleY: 1.2,
+                            scaleX: 1.2,
+                            angle: 0,
+                            x: 200,
+                            y: 480,
+                            duration: 200,
+                            onComplete: () => {
+                                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+                            }
+                        });
+                    }
                 });
             }
         });
 
-        // 4. Ranged Charge animation (IMG_1567 to IMG_1570)
-        if (!this.anims.exists('pl2_ranged_charge')) {
+        // Define keyframe animations for Hanuman
+        if (!this.anims.exists('player_idle_anim')) {
             this.anims.create({
-                key: 'pl2_ranged_charge',
+                key: 'player_idle_anim',
+                frames: Array.from({length: 8}, (_, i) => ({ key: 'player_idle_' + (i + 1) })),
+                frameRate: 10,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'player_charge_anim',
+                frames: Array.from({length: 6}, (_, i) => ({ key: 'player_charge_' + (i + 1) })),
+                frameRate: 12,
+                repeat: 0
+            });
+            this.anims.create({
+                key: 'player_run_anim',
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'player_run_' + (i + 1) })),
+                frameRate: 12,
+                repeat: -1
+            });
+        }
+
+        // Define keyframe animations for Yaksa
+        if (!this.anims.exists('yak_walk_anim')) {
+            this.anims.create({
+                key: 'yak_walk_anim',
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'yaksa_walk_' + (i + 1) })),
+                frameRate: 10,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'yak_run_anim',
+                frames: Array.from({length: 8}, (_, i) => ({ key: 'yaksa_run_' + (i + 1) })),
+                frameRate: 12,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'yak_charge_anim',
                 frames: [
-                    { key: 'pl2_dash_1567' },
-                    { key: 'pl2_dash_1568' },
-                    { key: 'pl2_dash_1569' },
-                    { key: 'pl2_dash_1570' }
+                    { key: 'yaksa_charge_1' },
+                    { key: 'yaksa_charge_2' }
                 ],
+                frameRate: 6,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'yak_attack_anim',
+                frames: [
+                    { key: 'yaksa_attack_1' },
+                    { key: 'yaksa_attack_2' }
+                ],
+                frameRate: 8,
+                repeat: 0
+            });
+        }
+
+        // Play initial idle animation on Hanuman
+        if (this.gameState.player) {
+            this.gameState.player.play('player_idle_anim');
+        }
+
+        // Yaksa uses native animations, so no flipbook timer is needed.
+
+        // Setup Spell/Explosion Animations if they don't exist yet
+        if (!this.anims.exists('ef2_fireball_anim')) {
+            this.anims.create({
+                key: 'ef2_fireball_anim',
+                frames: Array.from({length: 8}, (_, i) => ({ key: 'ef_fireball' + (i + 1) })),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
+        if (!this.anims.exists('ef3_exp_anim')) {
+            this.anims.create({
+                key: 'ef3_exp_anim',
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'ef3_exp' + (i + 1) })),
                 frameRate: 15,
                 repeat: 0
             });
         }
-
-        // 5. Ranged Release animations (IMG_1571, IMG_1579, IMG_1582)
-        const rangedReleaseFrames = ['1571', '1579', '1582'];
-        rangedReleaseFrames.forEach(id => {
-            if (!this.anims.exists(`pl2_ranged_release_${id}`)) {
-                this.anims.create({
-                    key: `pl2_ranged_release_${id}`,
-                    frames: [{ key: `pl2_dash_${id}` }],
-                    frameRate: 15,
-                    repeat: 0
-                });
-            }
-        });
-        if (!this.anims.exists(this.gameState.animDead)) {
-            this.anims.create({
-                key: this.gameState.animDead,
-                frames: Array.from({length: 2}, (_, i) => ({ key: `pl2_dead${i}` })),
-                frameRate: 5,
-                repeat: 0
-            });
-        }
-        if (!this.anims.exists(this.gameState.animHurt)) {
-            this.anims.create({
-                key: this.gameState.animHurt,
-                frames: [ { key: 'pl2_hurt0' } ],
-                frameRate: 10,
-                repeat: 0
-            });
-        }
-        
-        for (let t = 1; t <= 3; t++) {
-            if (!this.anims.exists('troll' + t + '_walk')) {
-                this.anims.create({
-                    key: 'troll' + t + '_walk',
-                    frames: Array.from({length: 10}, (_, i) => ({ key: 't' + t + '_walk' + i })),
-                    frameRate: 15,
-                    repeat: -1
-                });
-                this.anims.create({
-                    key: 'troll' + t + '_attack',
-                    frames: Array.from({length: 10}, (_, i) => ({ key: 't' + t + '_attack' + i })),
-                    frameRate: 15,
-                    repeat: 0
-                });
-                this.anims.create({
-                    key: 'troll' + t + '_dead',
-                    frames: Array.from({length: 10}, (_, i) => ({ key: 't' + t + '_dead' + i })),
-                    frameRate: 15,
-                    repeat: 0
-                });
-            }
-
-            if (!this.anims.exists('skel' + t + '_walk')) {
-                this.anims.create({
-                    key: 'skel' + t + '_walk',
-                    frames: Array.from({length: 24}, (_, i) => ({ key: 's' + t + '_walk' + i })),
-                    frameRate: 20,
-                    repeat: -1
-                });
-                this.anims.create({
-                    key: 'skel' + t + '_attack',
-                    frames: Array.from({length: 12}, (_, i) => ({ key: 's' + t + '_attack' + i })),
-                    frameRate: 15,
-                    repeat: 0
-                });
-                this.anims.create({
-                    key: 'skel' + t + '_dead',
-                    frames: Array.from({length: 15}, (_, i) => ({ key: 's' + t + '_dead' + i })),
-                    frameRate: 15,
-                    repeat: 0
-                });
-                
-                // Golem
-                this.anims.create({ key: 'golem' + t + '_walk', frames: Array.from({length: 18}, (_, i) => ({ key: 'g' + t + '_walk' + i })), frameRate: 20, repeat: -1 });
-                this.anims.create({ key: 'golem' + t + '_attack', frames: Array.from({length: 12}, (_, i) => ({ key: 'g' + t + '_attack' + i })), frameRate: 15, repeat: 0 });
-                this.anims.create({ key: 'golem' + t + '_dead', frames: Array.from({length: 15}, (_, i) => ({ key: 'g' + t + '_dead' + i })), frameRate: 15, repeat: 0 });
-                
-                // Wraith
-                this.anims.create({ key: 'wraith' + t + '_walk', frames: Array.from({length: 12}, (_, i) => ({ key: 'w' + t + '_walk' + i })), frameRate: 15, repeat: -1 });
-                this.anims.create({ key: 'wraith' + t + '_attack', frames: Array.from({length: 12}, (_, i) => ({ key: 'w' + t + '_attack' + i })), frameRate: 15, repeat: 0 });
-                this.anims.create({ key: 'wraith' + t + '_dead', frames: Array.from({length: 15}, (_, i) => ({ key: 'w' + t + '_dead' + i })), frameRate: 15, repeat: 0 });
-            }
-        }
-
-        let createEf2 = (key, framesKey, length) => {
-            if (!this.anims.exists(key)) {
-                this.anims.create({
-                    key: key,
-                    frames: Array.from({length: length}, (_, i) => ({ key: framesKey + (i + 1) })),
-                    frameRate: 10,
-                    repeat: -1
-                });
-            }
-        };
-        createEf2('ef2_fireball_anim', 'ef_fireball', 8);
-        createEf2('ef2_waterball_anim', 'ef_waterball', 12);
-        createEf2('ef2_firearrow_anim', 'ef_firearrow', 8);
-
-        let createEf3 = (key, framesKey) => {
-            if (!this.anims.exists(key)) {
-                this.anims.create({
-                    key: key,
-                    frames: Array.from({length: 10}, (_, i) => ({ key: framesKey + (i + 1) })),
-                    frameRate: 20,
-                    repeat: 0
-                });
-            }
-        };
-        createEf3('ef3_exp_anim', 'ef3_exp');
-        createEf3('ef3_blue_anim', 'ef3_blue');
-        createEf3('ef3_nuke_anim', 'ef3_nuke');
-
         if (!this.anims.exists('ef_lightning')) {
             this.anims.create({
                 key: 'ef_lightning',
                 frames: [
                     { key: 'lt_b1' }, { key: 'lt_b2' }, { key: 'lt_b3' }, { key: 'lt_b4' }, { key: 'lt_b5' },
-                    { key: 'lt_c1' }, { key: 'lt_c2' }, { key: 'lt_c3' }, { key: 'lt_c4' }, { key: 'lt_c5' }, { key: 'lt_c6' },
                     { key: 'lt_c1' }, { key: 'lt_c2' }, { key: 'lt_c3' }, { key: 'lt_c4' }, { key: 'lt_c5' }, { key: 'lt_c6' },
                     { key: 'lt_e1' }, { key: 'lt_e2' }, { key: 'lt_e3' }
                 ],
@@ -747,34 +676,6 @@ class GamePlay extends Phaser.Scene {
                 repeat: 0
             });
         }
-
-        // Set origin to bottom (0.5, 1) and Y position to 515 so characters are always grounded.
-        this.gameState.player = this.add.sprite(200, 515, `pl2_idle0`).setOrigin(0.5, 1).setDepth(2);
-        
-        let origPlay = this.gameState.player.play.bind(this.gameState.player);
-        this.gameState.player.play = (key, ignoreIfPlaying) => {
-            // Normalize scales based on frame dimensions to keep height uniform (approx. 240px)
-            if (key === this.gameState.animIdle) {
-                this.gameState.player.setScale(1.0);
-            } else if (key === 'pl2_run_anim') {
-                this.gameState.player.setScale(1.33); // 240 / 180 = 1.33
-            } else if (key === this.gameState.animDead || key === this.gameState.animHurt) {
-                this.gameState.player.setScale(1.3); // 240 / 186 = 1.30
-            } else if (
-                key === 'pl2_charge' || 
-                key === 'pl2_dash_anim' || 
-                key === 'pl2_ranged_charge' || 
-                key.startsWith('pl2_melee_') || 
-                key.startsWith('pl2_ranged_release_')
-            ) {
-                this.gameState.player.setScale(1.80); // Reduced by 0.5 (was 2.55)
-            } else {
-                this.gameState.player.setScale(1.0);
-            }
-            return origPlay(key, ignoreIfPlaying);
-        };
-        
-        this.gameState.player.play(this.gameState.animIdle);
         
         // Setup Action Buttons (4 Buttons, Horizontal Row at the Bottom)
         let bw = 230; 
@@ -793,12 +694,12 @@ class GamePlay extends Phaser.Scene {
         
         // --- CHECK STAGE PROGRESS & BOSS SPAWN ---
         if (!this.gameState.isBossFight && this.gameState.scoreInStage >= currentStageData.wordsToPass) {
-            // Trigger Boss Fight instead of just moving to next stage
+            // Trigger Boss Fight
             this.gameState.isBossFight = true;
             this.gameState.bossHp = this.gameState.bossMaxHp;
             
-            let bossWarning = this.add.text(500, 300, 'WARNING: MINI-BOSS!', { 
-                fontFamily: '"PixelGame", Kanit', fontSize: '70px', color: '#ff0000', stroke: '#fff', strokeThickness: 8 
+            let bossWarning = this.add.text(500, 300, 'ระวัง! แม่ทัพยักษ์ทศกัณฐ์!', { 
+                fontFamily: 'Kanit, sans-serif', fontSize: '60px', fontWeight: 'bold', color: '#ff0000', stroke: '#ffffff', strokeThickness: 8 
             }).setOrigin(0.5).setDepth(20);
             
             // Flash red
@@ -806,15 +707,15 @@ class GamePlay extends Phaser.Scene {
             this.tweens.add({ targets: flash, alpha: 0, duration: 200, yoyo: true, repeat: 3, onComplete: () => flash.destroy() });
             
             this.tweens.add({
-                targets: bossWarning, scale: 1.2, alpha: 0, duration: 2000, ease: 'Power2',
+                targets: bossWarning, scale: 1.15, alpha: 0, duration: 2500, ease: 'Power2',
                 onComplete: () => bossWarning.destroy()
             });
             
             this.gameState.stageText.setText('BOSS: ' + currentStageData.stageName);
-            this.gameState.stageText.setColor('#ff4444');
+            this.gameState.stageText.setColor('#ff3333');
         } else if (this.gameState.isBossFight && this.gameState.bossHp <= 0) {
             // Defeated Boss -> Next Stage transition
-            this.gameState.isAnimating = true; // Block UI clicks during transition
+            this.gameState.isAnimating = true; 
             this.gameState.isBossFight = false;
             this.gameState.scoreInStage = 0;
             this.gameState.currentStageIdx++;
@@ -822,49 +723,52 @@ class GamePlay extends Phaser.Scene {
             if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
                 this.gameState.currentStageIdx = 0; // Loop back
             }
-            this.gameState.quizQueue = []; // Clear queue
+            this.gameState.quizQueue = []; 
 
-            let nsText = this.add.text(500, 300, 'STAGE CLEAR!', { fontFamily: '"PixelGame", Kanit', fontSize: '80px', color: '#00ff00', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(20);
+            let nsText = this.add.text(500, 300, 'ผ่านด่านสำเร็จ!', { fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '80px', color: '#00ff00', stroke: '#000000', strokeThickness: 8 }).setOrigin(0.5).setDepth(20);
             this.tweens.add({
                 targets: nsText, y: 200, alpha: 0, duration: 2000,
                 onComplete: () => nsText.destroy()
             });
 
-            // Player plays run animation and runs off-screen to the right
-            this.gameState.player.play('pl2_run_anim');
+            // Player slides off-screen right
+            this.gameState.playerIdleTween.pause();
+            this.gameState.player.play('player_run_anim');
             this.tweens.add({
                 targets: this.gameState.player,
                 x: 1100,
-                duration: 1500,
-                ease: 'Linear',
+                duration: 1200,
+                ease: 'Power2.easeIn',
                 onComplete: () => {
-                    // Update Background and Stage labels
-                    let bgIndex = this.gameState.currentStageIdx % 4; 
+                    // Update Background
+                    let bgIndex = this.gameState.currentStageIdx % 6; 
                     this.gameState.bg.setTexture('lvl_bg' + bgIndex);
                     
                     let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
                     this.gameState.stageText.setText(stageName);
                     this.gameState.stageText.setColor('#ffffff');
 
-                    // Player spawns off-screen left and runs back to x = 200
+                    // Player spawns off-screen left and moves back to x = 130
                     this.gameState.player.x = -100;
+                    this.gameState.player.y = 427;
                     this.tweens.add({
                         targets: this.gameState.player,
-                        x: 200,
+                        x: 130,
                         duration: 1000,
-                        ease: 'Linear',
+                        ease: 'Power2.easeOut',
                         onComplete: () => {
-                            this.gameState.player.play(this.gameState.animIdle);
-                            this.gameState.isAnimating = false; // Enable UI clicks
-                            this.nextQuiz(); // Set up new question
+                            this.gameState.player.play('player_idle_anim');
+                            this.gameState.playerIdleTween.resume();
+                            this.gameState.isAnimating = false;
+                            this.nextQuiz();
                         }
                     });
                 }
             });
-            return; // Wait for tween completion callback to execute nextQuiz
+            return;
         }
 
-        // Fill and shuffle the queue if it's empty
+        // Fill and shuffle queue
         if (!this.gameState.quizQueue || this.gameState.quizQueue.length === 0) {
             let pool = [...this.gameState.vocabData[this.gameState.currentStageIdx].words];
             for (let i = pool.length - 1; i > 0; i--) {
@@ -882,15 +786,13 @@ class GamePlay extends Phaser.Scene {
         let correctThaiWord = quiz['c' + quiz.ans];
         this.gameState.wordText.setText(correctThaiWord);
 
-        // Generate 4 English Choices (1 correct, 3 wrong from same stage)
+        // Generate 4 English Choices
         let choices = [];
         choices.push({ text: quiz.eng, isCorrect: true });
 
-        // Get pool of ALL words in current stage to pick wrong choices
         let allWords = this.gameState.vocabData[this.gameState.currentStageIdx].words;
         let wrongCandidates = allWords.filter(w => w.eng !== quiz.eng);
         
-        // Shuffle wrong candidates and pick 3
         for (let i = wrongCandidates.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [wrongCandidates[i], wrongCandidates[j]] = [wrongCandidates[j], wrongCandidates[i]];
@@ -900,7 +802,7 @@ class GamePlay extends Phaser.Scene {
         choices.push({ text: wrongCandidates[1].eng, isCorrect: false });
         choices.push({ text: wrongCandidates[2].eng, isCorrect: false });
 
-        // Shuffle the 4 choices
+        // Shuffle choices
         for (let i = choices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [choices[i], choices[j]] = [choices[j], choices[i]];
@@ -912,89 +814,162 @@ class GamePlay extends Phaser.Scene {
         this.gameState.btn3.text.setText(choices[2].text);
         this.gameState.btn4.text.setText(choices[3].text);
 
-        // Record which button is correct
         this.gameState.correctBtn = choices.findIndex(c => c.isCorrect) + 1;
 
         if (this.gameState.zombie) {
+            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
+            if (this.gameState.zombieTrail) this.gameState.zombieTrail.destroy();
             this.gameState.zombie.destroy();
         }
         
-        // Spawn Monster based on Stage
-        let safeIdx = this.gameState.currentStageIdx % 4; // Safely map 6 stages to 4 monster types
-        let tIdx = Math.floor(Math.random() * 3) + 1; // Random 1, 2, or 3
-        
-        // Original Scales
-        let monsterMap = [
-            { key: 'troll', prefix: 't', baseScale: 0.35 },
-            { key: 'skel', prefix: 's', baseScale: 0.28 },
-            { key: 'golem', prefix: 'g', baseScale: 0.38 },
-            { key: 'wraith', prefix: 'w', baseScale: 0.38 } 
-        ];
+        // Spawn Enemy (Exclusively Yaksa for all stages)
+        let isFloating = false;
+        let mKey = 'enemy_yaksa';
+        let spawnY = 427;
+        let baseScale = this.gameState.isBossFight ? 1.6 : 1.25;
 
-        let mConfig = monsterMap[safeIdx] || monsterMap[0]; // safety fallback
-        
-        this.gameState.currentMonsterKey = mConfig.key + tIdx;
-        
-        // If Boss Fight, scale up the monster!
-        let finalScale = this.gameState.isBossFight ? (mConfig.baseScale * 1.5) : mConfig.baseScale;
-        
-        // Custom Y positions for each stage (Stage 1 to 6)
-        let stageYCoords = [380, 420, 430, 420, 420, 420];
-        let spawnY = stageYCoords[this.gameState.currentStageIdx] || 420; // fallback to 420
+        this.gameState.zombie = this.add.sprite(950, spawnY, mKey).setOrigin(0.5, 1).setDepth(2);
+        this.gameState.zombie.setScale(baseScale);
+        if (this.gameState.isBossFight) {
+            this.gameState.zombie.play('yak_run_anim');
+        } else {
+            this.gameState.zombie.play('yak_walk_anim');
+        }
+        // Reset player to idle position at far left
+        if (this.gameState.player && !this.gameState.isAnimating) {
+            this.gameState.player.x = 130;
+            this.gameState.player.y = 480;
+        }
 
-        this.gameState.zombie = this.add.sprite(950, spawnY, mConfig.prefix + tIdx + '_walk0').setOrigin(0.5).setDepth(2);
-        this.gameState.zombie.setFlipX(true); 
-        this.gameState.zombie.setScale(finalScale); 
-        this.gameState.zombie.play(this.gameState.currentMonsterKey + '_walk');
-        
-        // Boss HP Bar visuals above boss head
+        // Hover sine wave with glowing trail for Krasue, heavy walking stomp for Giants
+        if (isFloating) {
+            // Eerie glowing red organ particles trail for Krasue
+            this.gameState.zombieTrail = this.add.particles(950, spawnY - 60, 'ef_fireball1', {
+                scale: { start: 0.08, end: 0 },
+                speedY: { min: 40, max: 120 },
+                speedX: { min: -20, max: 20 },
+                lifespan: 500,
+                alpha: { start: 0.5, end: 0 },
+                tint: 0xff3300, // Crimson red organs glow
+                blendMode: 'ADD',
+                frequency: 80
+            }).setDepth(1);
+
+            this.gameState.zombieFloatTween = this.tweens.add({
+                targets: this.gameState.zombie,
+                y: spawnY - 25,
+                angle: 8,
+                duration: 1200,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+        } else {
+            // Giants walk with heavy stomp squash-and-stretch (no Y float)
+            this.gameState.zombieFloatTween = this.tweens.add({
+                targets: this.gameState.zombie,
+                scaleX: baseScale * 0.94,
+                scaleY: baseScale * 1.06,
+                duration: 350,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Quad.easeOut',
+                onYoyo: () => {
+                    if (!this.gameState.isGameOver && this.gameState.zombie && this.gameState.zombie.x > 220) {
+                        // Ground stomp shake & dust cloud
+                        this.cameras.main.shake(60, 0.003);
+                        let dust = this.add.circle(this.gameState.zombie.x, spawnY, 8, 0xaaaaaa, 0.6).setDepth(1);
+                        this.tweens.add({
+                            targets: dust,
+                            scale: 2.5,
+                            alpha: 0,
+                            duration: 250,
+                            onComplete: () => dust.destroy()
+                        });
+                    }
+                }
+            });
+        }
+
+        // Boss HP Bar visual above head
         if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true);
         if (this.gameState.isBossFight) {
             this.gameState.bossHpGroup = this.add.group();
             let bHpBg = this.add.graphics();
-            bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -100, 100, 10);
+            bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -180, 100, 10);
             let bHpFill = this.add.graphics();
-            bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -100, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
+            bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -180, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
             
-            // Container to sync with zombie movement
             let hpContainer = this.add.container(this.gameState.zombie.x, this.gameState.zombie.y);
             hpContainer.add([bHpBg, bHpFill]);
             this.gameState.bossHpGroup.add(hpContainer);
-            this.gameState.zombie.hpContainer = hpContainer; // link it
+            this.gameState.zombie.hpContainer = hpContainer;
         }
         
-        // Zombie walks towards player using setting speed
+        // Zombie walks towards player
         let walkDuration = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
-        if (this.gameState.isBossFight) walkDuration *= 1.5; // Boss walks a bit slower so player has time to answer 3 questions
+        if (this.gameState.isBossFight) walkDuration *= 1.4; // Boss walks slightly slower
         
-        this.gameState.zombieTween = this.tweens.add({
+        this.gameState.zombieMoveTween = this.tweens.add({
             targets: this.gameState.zombie,
-            x: 330, 
-            y: spawnY,
-            duration: walkDuration, // dynamic difficulty
+            x: 210, 
+            duration: walkDuration,
             onUpdate: () => {
-                if(this.gameState.zombie && this.gameState.zombie.hpContainer) {
-                    this.gameState.zombie.hpContainer.x = this.gameState.zombie.x;
+                if(this.gameState.zombie) {
+                    if (this.gameState.zombie.hpContainer) {
+                        this.gameState.zombie.hpContainer.x = this.gameState.zombie.x;
+                        this.gameState.zombie.hpContainer.y = this.gameState.zombie.y;
+                    }
+                    if (this.gameState.zombieTrail) {
+                        this.gameState.zombieTrail.setPosition(this.gameState.zombie.x, this.gameState.zombie.y - 60);
+                    }
+                    // Player stays at far left during idle - no follow
                 }
             },
             onComplete: () => {
                 if (!this.gameState.isAnimating && !this.gameState.isGameOver) {
                     this.gameState.isAnimating = true;
 
-                    // Enemy strikes!
-                    this.game.loop.targetFps = 15; // Reduce framerate to 15 during attack
-                    this.gameState.zombie.play(this.gameState.currentMonsterKey + '_attack');
+                    // Monster Windup & Heavy Lunge Strike
+                    if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
 
-                    // Call integrated damage logic at the apex of attack
-                    setTimeout(() => {
-                        // Boss deals 2 damage!
-                        if (this.gameState.isBossFight) {
-                            this.gameState.hp--;
-                            this.updateHpBar();
+                    this.tweens.add({
+                        targets: this.gameState.zombie,
+                        scaleX: this.gameState.zombie.scaleX * 1.15,
+                        scaleY: this.gameState.zombie.scaleY * 0.85,
+                        angle: isFloating ? 15 : -15,
+                        duration: 150,
+                        yoyo: true,
+                        repeat: 0,
+                        onComplete: () => {
+                            // High speed strike lunge
+                            this.tweens.add({
+                                targets: this.gameState.zombie,
+                                x: 260,
+                                duration: 180,
+                                ease: 'Cubic.easeOut',
+                                onComplete: () => {
+                                    if (this.gameState.isBossFight) {
+                                        this.gameState.hp--;
+                                        this.updateHpBar();
+                                    }
+                                    this.playerTakeDamage();
+
+                                    // Lurch return
+                                    this.tweens.add({
+                                        targets: this.gameState.zombie,
+                                        x: 330,
+                                        duration: 250,
+                                        ease: 'Quad.easeIn',
+                                        onComplete: () => {
+                                            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
+                                        }
+                                    });
+                                }
+                            });
                         }
-                        this.playerTakeDamage();
-                        this.game.loop.targetFps = 60; // Restore standard framerate
-                    }, 350); 
+                    });
                 }
             }
         });
@@ -1003,39 +978,47 @@ class GamePlay extends Phaser.Scene {
     dealAttackDamage() {
         if (this.gameState.isGameOver) return;
 
-        // Play pl2 close-effect directly on the zombie (grounded and scaled up)
-        let boom = this.add.sprite(this.gameState.zombie.x, 515, 'pl2_close_1600').setOrigin(0.5, 1).setDepth(15);
-        boom.setScale(2.5); // Scale up for larger visual impact
-        boom.play('pl2_close_effect_anim');
-        boom.once('animationcomplete', () => { boom.destroy(); });
+        // Flash enemy white for damage indication
+        this.gameState.zombie.setTintFill(0xffffff);
+        setTimeout(() => { if (this.gameState.zombie) this.gameState.zombie.clearTint(); }, 150);
 
         if (this.gameState.isBossFight) {
             this.gameState.bossHp--;
-            // Flash boss white for damage indication
-            this.gameState.zombie.setTintFill(0xffffff);
-            setTimeout(() => this.gameState.zombie.clearTint(), 150);
-            
             if (this.gameState.bossHp > 0) {
-                // Boss still ALIVE - Reload another question immediately
-                setTimeout(() => {
-                    this.nextQuiz(); // Note: we bypassed the scoreInStage logic in nextQuiz, it will preserve isBossFight
-                }, 500);
-                return; // Stop here, don't play dead anim yet
+                // Update boss HP bar
+                if (this.gameState.zombie.hpContainer) {
+                    this.gameState.zombie.hpContainer.destroy();
+                }
+                let bHpBg = this.add.graphics();
+                bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -180, 100, 10);
+                let bHpFill = this.add.graphics();
+                bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -180, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
+                
+                let hpContainer = this.add.container(this.gameState.zombie.x, this.gameState.zombie.y);
+                hpContainer.add([bHpBg, bHpFill]);
+                this.gameState.bossHpGroup.add(hpContainer);
+                this.gameState.zombie.hpContainer = hpContainer;
+
+                // Reload question immediately
+                setTimeout(() => { this.nextQuiz(); }, 500);
+                return;
             }
         }
 
-        // NORMAL KILL OR BOSS DEFEATED
-        if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); // Clear boss HP bar
+        // Defeated
+        if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); 
 
-        this.gameState.zombie.play(this.gameState.currentMonsterKey + '_dead');
+        // Spin and fade out enemy
+        if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
         this.tweens.add({
             targets: this.gameState.zombie,
             alpha: 0,
-            y: this.gameState.zombie.y + 20, 
+            angle: 180,
+            y: this.gameState.zombie.y + 40,
             duration: 800, 
             onComplete: () => {
                 if (this.gameState.isBossFight) {
-                    this.gameState.coins += 50; // Boss gives 50 coins
+                    this.gameState.coins += 50; 
                 } else {
                     this.gameState.coins += 10;
                     this.gameState.scoreInStage++;
@@ -1052,133 +1035,308 @@ class GamePlay extends Phaser.Scene {
         this.gameState.isAnimating = true;
 
         if (this.gameState.correctBtn === choiceNumber) {
-            // Correct
-            if (this.gameState.zombieTween) this.gameState.zombieTween.stop();
+            // Correct answer
+            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
 
-            // Randomly choose between Melee (dash) or Ranged (projectile)
-            let isMelee = Math.random() < 0.5;
+            // Randomly choose from 3 premium custom attack moves
+            let attackStyle = Math.floor(Math.random() * 3);
+            if (attackStyle === 0) {
+                this.playTridentTyphoon();
+            } else if (attackStyle === 1) {
+                this.playThunderMonkey();
+            } else {
+                this.playApeDashCombo();
+            }
+        } else {
+            // Wrong answer - Enemy strikes instantly!
+            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
 
-            this.game.loop.targetFps = 15; // Reduce framerate to 15 during attack
+            let performLunge = () => {
+                // Red screen border alert flash
+                let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
+                this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
 
-            if (isMelee) {
-                // --- MELEE FLOW ---
-                // Charge phase: play pl2_charge and stay still for 150ms
-                this.gameState.player.play('pl2_charge');
+                // Stop active walk/run animations and set randomly chosen attack texture
+                this.gameState.zombie.anims.stop();
+                let randAttack = Math.random() < 0.5 ? 'yaksa_attack_1' : 'yaksa_attack_2';
+                this.gameState.zombie.setTexture(randAttack);
 
-                this.time.delayedCall(150, () => {
-                    if (this.gameState.isGameOver) return;
+                this.tweens.add({
+                    targets: this.gameState.zombie,
+                    x: this.gameState.player.x + 70,
+                    duration: 200,
+                    yoyo: true,
+                    repeat: 0,
+                    onComplete: () => {
+                        if (this.gameState.isBossFight) {
+                            this.gameState.zombie.play('yak_run_anim');
+                            this.gameState.hp--;
+                            this.updateHpBar();
+                        } else {
+                            this.gameState.zombie.play('yak_walk_anim');
+                        }
+                        this.playerTakeDamage();
+                    }
+                });
+            };
 
-                    // Dash phase: play pl2_dash_anim and tween to zombie
-                    this.gameState.player.play('pl2_dash_anim');
-                    let targetX = Math.max(200, this.gameState.zombie.x - 80);
+            if (this.gameState.isBossFight) {
+                // Boss charges first before lunging!
+                this.gameState.zombie.play('yak_charge_anim');
+                this.time.delayedCall(500, () => {
+                    performLunge();
+                });
+            } else {
+                performLunge();
+            }
+        }
+    }
 
+    playTridentTyphoon() {
+        if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+        if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
+
+        // 1. Play charge animation first
+        this.gameState.player.play('player_charge_anim');
+        this.gameState.player.once('animationcomplete-player_charge_anim', () => {
+            let randAttackIdx = Math.floor(Math.random() * 4) + 1;
+
+            // 2. Anticipation (Squash)
+            this.tweens.add({
+                targets: this.gameState.player,
+                scaleY: 0.8,
+                scaleX: 1.4,
+                duration: 150,
+                onComplete: () => {
+                    // 3. High Leap Spin
                     this.tweens.add({
                         targets: this.gameState.player,
-                        x: targetX,
-                        duration: 150,
-                        ease: 'Cubic.easeOut',
+                        x: (200 + this.gameState.zombie.x) / 2,
+                        y: 240,
+                        angle: 360,
+                        scaleY: 1.2,
+                        scaleX: 1.2,
+                        duration: 300,
+                        ease: 'Quad.easeOut',
                         onComplete: () => {
-                            // Melee Hit phase: reach target, play random melee animation
-                            const meleeKeys = ['pl2_melee_1577', 'pl2_melee_1578', 'pl2_melee_1580', 'pl2_melee_1581', 'pl2_melee_1583'];
-                            let randMeleeKey = meleeKeys[Math.floor(Math.random() * meleeKeys.length)];
-                            this.gameState.player.play(randMeleeKey);
+                            // Set texture to randomized attack frame right before hitting
+                            this.gameState.player.anims.stop();
+                            this.gameState.player.setTexture('player_attack_custom_' + randAttackIdx);
 
-                            // Apply hit explosion and damage on the zombie immediately
-                            this.dealAttackDamage();
+                            // 4. Slam Down Strike (shorter offset to be closer to enemy)
+                            this.tweens.add({
+                                targets: this.gameState.player,
+                                x: this.gameState.zombie.x - 45,
+                                y: 480,
+                                angle: 720,
+                                duration: 180,
+                                ease: 'Quad.easeIn',
+                                onComplete: () => {
+                                    // Impact
+                                    this.cameras.main.shake(250, 0.03);
+                                    let flash = this.add.graphics().fillStyle(0xffffff, 0.6).fillRect(0,0,1000,600).setDepth(20);
+                                    this.tweens.add({ targets: flash, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
 
-                            // Hold melee position for 200ms, then return back to original position
-                            this.time.delayedCall(200, () => {
-                                if (this.gameState.isGameOver) return;
+                                    // Dust shockwave rings
+                                    let ring = this.add.circle(this.gameState.zombie.x - 45, 480, 20).setStrokeStyle(4, 0xffffff, 0.8).setDepth(1);
+                                    this.tweens.add({ targets: ring, radius: 100, alpha: 0, duration: 300, onComplete: () => ring.destroy() });
 
-                                // Tween back playing idle
-                                this.gameState.player.play(this.gameState.animIdle);
-                                this.tweens.add({
-                                    targets: this.gameState.player,
-                                    x: 200,
-                                    duration: 150,
-                                    ease: 'Cubic.easeIn',
-                                    onComplete: () => {
-                                        this.game.loop.targetFps = 60; // Restore standard framerate
-                                    }
-                                });
+                                    // Contact explosion
+                                    let exp = this.add.sprite(this.gameState.zombie.x, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(3.5).setDepth(5);
+                                    exp.play('ef3_exp_anim');
+                                    exp.once('animationcomplete', () => exp.destroy());
+
+                                    this.dealAttackDamage();
+
+                                    // 5. Leap Return to far-left idle position
+                                    this.tweens.add({
+                                        targets: this.gameState.player,
+                                        x: 130,
+                                        y: 480,
+                                        angle: 0,
+                                        duration: 350,
+                                        ease: 'Bounce.easeOut',
+                                        onComplete: () => {
+                                            this.gameState.player.play('player_idle_anim');
+                                            if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                            if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+                                        }
+                                    });
+                                }
                             });
                         }
                     });
-                });
-            } else {
-                // --- RANGED FLOW ---
-                // Charge phase: play pl2_ranged_charge at x = 200
-                this.gameState.player.play('pl2_ranged_charge');
+                }
+            });
+        });
+    }
 
-                // When the charge animation completes, play the ranged release animation and fire the projectile
-                this.gameState.player.once('animationcomplete-pl2_ranged_charge', () => {
-                    if (this.gameState.isGameOver) return;
+    playThunderMonkey() {
+        if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+        if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
-                    // Release phase: play random ranged release posture
-                    let releaseKeys = ['pl2_ranged_release_1571', 'pl2_ranged_release_1579', 'pl2_ranged_release_1582'];
-                    let randReleaseKey = releaseKeys[Math.floor(Math.random() * releaseKeys.length)];
-                    this.gameState.player.play(randReleaseKey);
+        // 1. Play charge animation first
+        this.gameState.player.play('player_charge_anim');
+        this.gameState.player.once('animationcomplete-player_charge_anim', () => {
+            let randAttackIdx = Math.floor(Math.random() * 4) + 1;
 
-                    // When release animation completes, go back to idle and restore target FPS
-                    this.gameState.player.once('animationcomplete', () => {
-                        this.gameState.player.play(this.gameState.animIdle);
-                        this.game.loop.targetFps = 60; // Restore standard framerate
+            // 2. Charge Pose (Lean back, float up and dash next to enemy)
+            this.tweens.add({
+                targets: this.gameState.player,
+                y: 440,
+                x: this.gameState.zombie.x - 45,
+                angle: -20,
+                duration: 300,
+                ease: 'Quad.easeOut',
+                onComplete: () => {
+                    // Set texture to randomized attack frame right before hitting
+                    this.gameState.player.anims.stop();
+                    this.gameState.player.setTexture('player_attack_custom_' + randAttackIdx);
+
+                    // 3. Blue screen border alert flash and lightning strike
+                    this.cameras.main.shake(200, 0.02);
+                    let lightningFlash = this.add.graphics().fillStyle(0x00ffff, 0.5).fillRect(0,0,1000,600).setDepth(20);
+                    this.tweens.add({ targets: lightningFlash, alpha: 0, duration: 300, onComplete: () => lightningFlash.destroy() });
+
+                    // Spawn Lightning
+                    let bolt = this.add.sprite(this.gameState.zombie.x, this.gameState.zombie.y - 120, 'lt_b1').setOrigin(0.5).setDepth(20).setScale(3.5);
+                    bolt.play('ef_lightning');
+                    bolt.once('animationcomplete', () => {
+                        bolt.destroy();
+                        
+                        // Contact explosion
+                        let exp = this.add.sprite(this.gameState.zombie.x, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(3.5).setDepth(5);
+                        exp.play('ef3_exp_anim');
+                        exp.once('animationcomplete', () => exp.destroy());
+
+                        this.dealAttackDamage();
+
+                        // Float back down to far-left idle position
+                        this.tweens.add({
+                            targets: this.gameState.player,
+                            x: 130,
+                            y: 480,
+                            angle: 0,
+                            duration: 250,
+                            onComplete: () => {
+                                this.gameState.player.play('player_idle_anim');
+                                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+                            }
+                        });
                     });
+                }
+            });
+        });
+    }
 
-                    // Spawn and shoot a projectile (using pl2_skill_anim)
-                    let bullet = this.add.sprite(280, 400, 'pl2_skill_1597').setOrigin(0.5).setDepth(5);
-                    bullet.setScale(0.8);
-                    bullet.play('pl2_skill_anim');
+    playApeDashCombo() {
+        if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+        if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
+        // 1. Play charge animation first
+        this.gameState.player.play('player_charge_anim');
+        this.gameState.player.once('animationcomplete-player_charge_anim', () => {
+            let zombieX = this.gameState.zombie.x;
+
+            // 1. Dash 1 (High speed slash close next to enemy)
+            this.gameState.player.anims.stop();
+            this.gameState.player.setTexture('player_attack_custom_' + (Math.floor(Math.random() * 4) + 1));
+            this.tweens.add({
+                targets: this.gameState.player,
+                x: zombieX - 70,
+                duration: 120,
+                ease: 'Quad.easeOut',
+                onComplete: () => {
+                    this.cameras.main.shake(100, 0.01);
+                    let exp1 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(2).setDepth(5);
+                    exp1.play('ef3_exp_anim');
+                    exp1.once('animationcomplete', () => exp1.destroy());
+
+                    // Retreat
                     this.tweens.add({
-                        targets: bullet,
-                        x: this.gameState.zombie.x,
-                        duration: 250,
+                        targets: this.gameState.player,
+                        x: zombieX - 180,
+                        duration: 100,
                         onComplete: () => {
-                            bullet.destroy();
-                            this.dealAttackDamage(); // reuse same damage & death trigger logic
+                            // 2. Dash 2 (Angle tilt slash closer)
+                            this.gameState.player.setTexture('player_attack_custom_' + (Math.floor(Math.random() * 4) + 1));
+                            this.tweens.add({
+                                targets: this.gameState.player,
+                                x: zombieX - 55,
+                                angle: 25,
+                                duration: 120,
+                                ease: 'Quad.easeOut',
+                                onComplete: () => {
+                                    this.cameras.main.shake(100, 0.01);
+                                    let exp2 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(2).setDepth(5);
+                                    exp2.play('ef3_exp_anim');
+                                    exp2.once('animationcomplete', () => exp2.destroy());
+
+                                    // Retreat
+                                    this.tweens.add({
+                                        targets: this.gameState.player,
+                                        x: zombieX - 140,
+                                        angle: 0,
+                                        duration: 100,
+                                        onComplete: () => {
+                                            // 3. Final slam Dash 3 (Huge spin right next to enemy)
+                                            this.gameState.player.setTexture('player_attack_custom_' + (Math.floor(Math.random() * 4) + 1));
+                                            this.tweens.add({
+                                                targets: this.gameState.player,
+                                                x: zombieX - 40,
+                                                angle: -45,
+                                                duration: 120,
+                                                ease: 'Cubic.easeOut',
+                                                onComplete: () => {
+                                                    this.cameras.main.shake(200, 0.02);
+                                                    let exp3 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(3.5).setDepth(5);
+                                                    exp3.play('ef3_exp_anim');
+                                                    exp3.once('animationcomplete', () => exp3.destroy());
+
+                                                    this.dealAttackDamage();
+
+                                                    // Jump back to far-left idle position
+                                                    this.tweens.add({
+                                                        targets: this.gameState.player,
+                                                        x: 130,
+                                                        y: 480,
+                                                        angle: 0,
+                                                        duration: 250,
+                                                        onComplete: () => {
+                                                            this.gameState.player.play('player_idle_anim');
+                                                            if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                                            if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
-                });
-            }
-        } else {
-            // Wrong: Zombie casts lightning on the player
-            if (this.gameState.zombieTween) this.gameState.zombieTween.stop();
-            
-            // Enemy strikes instantly due to wrong answer!
-            this.game.loop.targetFps = 15; // Reduce framerate to 15 during attack
-            this.gameState.zombie.play(this.gameState.currentMonsterKey + '_attack');
-            setTimeout(() => {
-                if (this.gameState.isBossFight) {
-                    this.gameState.hp--; // Boss hits harder
-                    this.updateHpBar();
                 }
-                this.playerTakeDamage();
-                this.game.loop.targetFps = 60; // Restore standard framerate
-            }, 350);
-        }
+            });
+        });
     }
 
     gameOver() {
         this.gameState.isGameOver = true;
-        
-        // Play Dead Animation and bring character forward
-        this.gameState.player.play(this.gameState.animDead);
         this.gameState.player.setDepth(11);
         if (this.gameState.zombie) {
-            this.gameState.zombie.setDepth(11); // Bring zombie forward too so interaction looks consistent
+            this.gameState.zombie.setDepth(11);
         }
 
         let stageStr = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
 
-        this.gameState.player.once('animationcomplete', () => {
-            setTimeout(() => {
-                this.scene.start('GameOverScene', { 
-                    score: this.gameState.coins, 
-                    stageName: stageStr 
-                });
-            }, 500); // 0.5s dramatic pause after dying
-        });
+        setTimeout(() => {
+            this.scene.start('GameOverScene', { 
+                score: this.gameState.coins, 
+                stageName: stageStr 
+            });
+        }, 800);
     }
 }
 
@@ -1189,15 +1347,18 @@ class PauseMenu extends Phaser.Scene {
 
     create() {
         // Pause Background
-        let bg = this.add.image(500, 300, 'lvl_menu_bg');
-        bg.setDisplaySize(1000, 600);
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         
         // Dim background overlay
         let overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.7);
+        overlay.fillStyle(0x000000, 0.6);
         overlay.fillRect(0, 0, 1000, 600);
 
-        this.add.text(500, 150, 'หยุดเกมชั่วคราว', {
+        // Center Panel Frame
+        let panelFrame = this.add.graphics();
+        drawThaiFrame(panelFrame, 200, 80, 600, 440, 16);
+
+        this.add.text(500, 160, 'หยุดเกมชั่วคราว', {
             fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
             fontSize: '60px',
             color: '#ffea00',
@@ -1205,19 +1366,19 @@ class PauseMenu extends Phaser.Scene {
         }).setOrigin(0.5).setShadow(4, 6, '#000000', 0, false, true);
 
         // Resume Button
-        createChoiceButton(this, 500, 300, 'เล่นต่อ', () => {
+        createChoiceButton(this, 500, 270, 'เล่นต่อ', () => {
             this.scene.stop();
             this.scene.resume('GamePlay');
         });
 
         // Restart Button
-        createChoiceButton(this, 300, 450, 'เริ่มใหม่', () => {
+        createChoiceButton(this, 350, 400, 'เริ่มใหม่', () => {
             this.scene.stop();
             this.scene.get('GamePlay').scene.restart();
         });
 
         // Main Menu Button
-        createChoiceButton(this, 700, 450, 'เมนูหลัก', () => {
+        createChoiceButton(this, 650, 400, 'เมนูหลัก', () => {
             this.scene.stop();
             this.scene.stop('GamePlay');
             this.scene.start('MainMenu');
@@ -1234,48 +1395,49 @@ function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSiz
 
     // Drop Shadow
     let shadow = scene.add.graphics();
-    shadow.fillStyle(0x000000, 0.3);
-    shadow.fillRoundedRect(cx + 6, cy + 8, w, h, 6);
+    shadow.fillStyle(0x000000, 0.4);
+    shadow.fillRoundedRect(cx + 6, cy + 8, w, h, 8);
 
     // Black Outer Border
     let bOuter = scene.add.graphics();
-    bOuter.fillStyle(0x1a1a1a, 1);
-    bOuter.fillRoundedRect(cx, cy, w, h, 6);
+    bOuter.fillStyle(0x3a1007, 1); // Dark teak wood brown
+    bOuter.fillRoundedRect(cx, cy, w, h, 8);
     
-    // Dark Green lower shadow
+    // Dark Red lower shadow
     let bDark = scene.add.graphics();
-    bDark.fillStyle(0x367f57, 1);
-    bDark.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 8, 4);
+    bDark.fillStyle(0x5c0905, 1); // Deep blood red
+    bDark.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 8, 6);
 
-    // Main Green Base
+    // Main Red Base
     let bBase = scene.add.graphics();
-    bBase.fillStyle(0x51b87a, 1);
-    bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 4);
+    bBase.fillStyle(0x9e100b, 1); // Rich crimson red
+    bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
 
-    // Top Light Green Highlight
+    // Top Gold Highlight (Thai Temple Accent)
     let bLight = scene.add.graphics();
-    bLight.fillStyle(0x88dbac, 1);
-    bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 4);
+    bLight.fillStyle(0xd4af37, 1); // Temple gold
+    bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
 
     let btnText = scene.add.text(0, -2, textStr, {
         fontSize: fSize,
-        fontFamily: 'Kanit',
+        fontFamily: 'Kanit, sans-serif',
         fontWeight: 'bold',
-        color: '#000000',
+        color: '#ffd700', // Gold text
         padding: { top: 10, bottom: 10 },
-        strokeThickness: 0 
+        stroke: '#000000',
+        strokeThickness: 4
     }).setOrigin(0.5);
 
     container.add([shadow, bOuter, bDark, bBase, bLight, btnText]);
 
     let hitZone = scene.add.zone(0, 0, w, h).setInteractive({ useHandCursor: true });
     hitZone.on('pointerdown', () => {
-        bBase.fillStyle(0x367f57, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 4);
-        bLight.fillStyle(0x51b87a, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 4);
+        bBase.fillStyle(0x5c0905, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
+        bLight.fillStyle(0x9e100b, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
         container.y += 4;
         setTimeout(() => { 
-            bBase.fillStyle(0x51b87a, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 4);
-            bLight.fillStyle(0x88dbac, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 4);
+            bBase.fillStyle(0x9e100b, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
+            bLight.fillStyle(0xd4af37, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
             container.y -= 4; 
         }, 100);
         onClick();
@@ -1292,13 +1454,16 @@ class SettingsMenu extends Phaser.Scene {
 
     create() {
         // Pause Background
-        let bg = this.add.image(500, 300, 'lvl_menu_bg');
-        bg.setDisplaySize(1000, 600);
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         let overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.85);
+        overlay.fillStyle(0x000000, 0.6);
         overlay.fillRect(0, 0, 1000, 600);
 
-        this.add.text(500, 100, 'ตั้งค่าความยาก', {
+        // Center Panel Frame
+        let panelFrame = this.add.graphics();
+        drawThaiFrame(panelFrame, 200, 40, 600, 520, 16);
+
+        this.add.text(500, 95, 'ตั้งค่าความยาก', {
             fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
             fontSize: '60px',
             color: '#ffea00',
@@ -1307,14 +1472,14 @@ class SettingsMenu extends Phaser.Scene {
 
         // Difficulty Setting
         let difficulty = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
-        let diffLabel = this.add.text(500, 230, 'ความเร็วซอมบี้: ' + (difficulty === 10000 ? 'ช้า (10วิ)' : (difficulty === 6000 ? 'ปานกลาง (6วิ)' : 'เร็วทะลุนรก (3วิ)')), {
+        let diffLabel = this.add.text(500, 215, 'ความเร็วซอมบี้: ' + (difficulty === 10000 ? 'ช้า (10วิ)' : (difficulty === 6000 ? 'ปานกลาง (6วิ)' : 'เร็วทะลุนรก (3วิ)')), {
             fontFamily: '"PixelGame", Kanit',
-            fontSize: '36px',
+            fontSize: '32px',
             color: '#ffffff',
             strokeThickness: 0
         }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
 
-        createChoiceButton(this, 500, 320, 'เปลี่ยนระดับ', () => {
+        createChoiceButton(this, 500, 300, 'เปลี่ยนระดับ', () => {
             if(difficulty === 10000) difficulty = 6000;
             else if(difficulty === 6000) difficulty = 3000;
             else difficulty = 10000;
@@ -1323,7 +1488,7 @@ class SettingsMenu extends Phaser.Scene {
         });
 
         // Reset Score Button
-        createChoiceButton(this, 500, 420, 'รีเซ็ตคะแนน', () => {
+        createChoiceButton(this, 500, 400, 'รีเซ็ตคะแนน', () => {
             localStorage.setItem('zombieHighScore', 0);
             let prevText = diffLabel.text;
             diffLabel.setText('ล้างข้อมูลเรียบร้อย!');
@@ -1335,7 +1500,7 @@ class SettingsMenu extends Phaser.Scene {
         });
 
         // Back Button
-        createChoiceButton(this, 500, 520, 'ย้อนกลับ', () => {
+        createChoiceButton(this, 500, 500, 'ย้อนกลับ', () => {
             this.scene.start('MainMenu');
         });
     }
@@ -1352,81 +1517,75 @@ class GameOverScene extends Phaser.Scene {
     }
 
     create() {
-        // RPG-themed Dark Void + Bloody Horizon Grid effect (Simplified to dark gradient)
-        let bg = this.add.graphics();
-        bg.fillGradientStyle(0x111111, 0x111111, 0x330000, 0x330000, 1);
-        bg.fillRect(0, 0, 1000, 600);
+        // Dramatic background using temple menu background
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
+        
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x1c0505, 0.75); // Blood teak wood tone
+        overlay.fillRect(0, 0, 1000, 600);
 
-        // RPG Embers/Ashes rising
-        let particles = this.add.particles(0, 0, 'btn_gui', { 
-            x: { min: 0, max: 1000 },
-            y: { min: 600, max: 620 },
-            lifespan: { min: 2000, max: 4000 },
-            speedY: { min: -100, max: -20 },
-            speedX: { min: -20, max: 20 },
-            scale: { start: 0.1, end: 0 }, // tiny dots
-            alpha: { start: 0.8, end: 0 },
-            tint: 0xff3300,
-            blendMode: 'ADD'
-        });
+        // Grand Thai Signboard Frame for Stats
+        let statsFrame = this.add.graphics();
+        drawThaiFrame(statsFrame, 220, 190, 560, 220, 16);
 
-        // Title: GAME OVER (Retro Style: Thick Stroke, Yellow Top, Red Bottom)
-        let titleText = this.add.text(500, 150, 'GAME OVER', {
-            fontFamily: '"PixelGame", "Courier New", Courier',
-            fontSize: '120px',
-            stroke: '#000000',
-            strokeThickness: 16
+        // Title: พ่ายแพ้ศึก (DEFEATED / GAME OVER)
+        let titleText = this.add.text(500, 110, 'พ่ายแพ้ศึก', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '90px',
+            fontWeight: 'bold',
+            stroke: '#2b0202',
+            strokeThickness: 12
         }).setOrigin(0.5).setShadow(0, 8, '#000', 0, false, true);
 
-        // Create Gradient Fill for the Title
+        // Create beautiful gold-to-red gradient for title text
         let gradient = titleText.context.createLinearGradient(0, 0, 0, titleText.height);
-        gradient.addColorStop(0, '#ffff00');
-        gradient.addColorStop(0.5, '#ffff00');
-        gradient.addColorStop(0.51, '#ff0000');
-        gradient.addColorStop(1, '#ff0000');
+        gradient.addColorStop(0, '#ffd700'); // Gold
+        gradient.addColorStop(0.5, '#ffd700');
+        gradient.addColorStop(0.51, '#9e100b'); // Crimson
+        gradient.addColorStop(1, '#9e100b');
         titleText.setFill(gradient);
 
-        this.add.text(500, 280, 'จบเกมที่ด่าน: ' + this.stageName, {
-            fontFamily: '"PixelGame", Kanit',
+        this.add.text(500, 240, 'จบเกมที่ด่าน: ' + this.stageName, {
+            fontFamily: 'Kanit, sans-serif',
             fontSize: '32px',
-            color: '#dddddd',
-            strokeThickness: 0
+            fontWeight: 'bold',
+            color: '#ffffff',
         }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
 
-        this.add.text(500, 330, 'คะแนนสะสม: ' + this.finalScore, {
-            fontFamily: '"PixelGame", Kanit',
+        this.add.text(500, 295, 'คะแนนสะสม: ' + this.finalScore, {
+            fontFamily: 'Kanit, sans-serif',
             fontSize: '36px',
-            color: '#ffea00',
-            strokeThickness: 0
+            fontWeight: 'bold',
+            color: '#ffd700',
         }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
 
         let highScore = parseInt(localStorage.getItem('zombieHighScore')) || 0;
         if (this.finalScore > highScore) {
             highScore = this.finalScore;
             localStorage.setItem('zombieHighScore', highScore);
-            this.add.text(500, 380, 'NEW HIGH SCORE!', {
-                fontFamily: '"PixelGame", Courier',
+            this.add.text(500, 355, '★ สถิติใหม่ยุทธภพ! ★', {
+                fontFamily: 'Kanit, sans-serif',
                 fontSize: '28px',
+                fontWeight: 'bold',
                 color: '#00ffcc',
-                strokeThickness: 0
             }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
         }
 
-        // Retro 'CONTINUE ?' Prompt
-        this.add.text(500, 460, 'CONTINUE?', { 
-            fontFamily: '"PixelGame", "Courier New", Courier', fontSize: '40px', color: '#ffffff', strokeThickness: 0
+        // 'สู้ต่อหรือไม่?' Prompt
+        this.add.text(500, 450, 'ต้องการสู้ต่ออีกครั้งหรือไม่?', { 
+            fontFamily: 'Kanit, sans-serif', fontSize: '32px', fontWeight: 'bold', color: '#ffffff'
         }).setOrigin(0.5).setShadow(3, 5, '#000', 0, false, true);
 
         // YES / NO Cursor Menu
-        let yesBtn = this.add.text(420, 520, 'YES', { fontFamily: '"PixelGame", Courier', fontSize: '40px', color: '#ffffff', strokeThickness: 0 }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
-        let noBtn = this.add.text(580, 520, 'NO', { fontFamily: '"PixelGame", Courier', fontSize: '40px', color: '#ffffff', strokeThickness: 0 }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
+        let yesBtn = this.add.text(400, 520, 'สู้ต่อ (YES)', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', fontWeight: 'bold', color: '#ffd700' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
+        let noBtn = this.add.text(600, 520, 'ยอมแพ้ (NO)', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', fontWeight: 'bold', color: '#ff4444' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
 
-        let cursor = this.add.text(0, 0, '►', { fontFamily: '"PixelGame", Courier', fontSize: '36px', color: '#ffffff', strokeThickness: 0 }).setOrigin(1, 0.5).setShadow(2, 4, '#000', 0, false, true);
-        // Default point to YES
-        cursor.setPosition(yesBtn.x - 50, yesBtn.y);
+        // Hanuman's Trident selector cursor
+        let cursor = this.add.text(0, 0, '🔱', { fontFamily: 'Kanit, sans-serif', fontSize: '38px', color: '#ffd700' }).setOrigin(1, 0.5).setShadow(2, 4, '#000', 0, false, true);
+        cursor.setPosition(yesBtn.x - 100, yesBtn.y);
 
-        yesBtn.on('pointerover', () => cursor.setPosition(yesBtn.x - 50, yesBtn.y));
-        noBtn.on('pointerover', () => cursor.setPosition(noBtn.x - 40, noBtn.y));
+        yesBtn.on('pointerover', () => cursor.setPosition(yesBtn.x - 100, yesBtn.y));
+        noBtn.on('pointerover', () => cursor.setPosition(noBtn.x - 100, noBtn.y));
 
         yesBtn.on('pointerdown', () => this.scene.start('GamePlay'));
         noBtn.on('pointerdown', () => this.scene.start('MainMenu'));
@@ -1443,17 +1602,18 @@ class CategoryMenu extends Phaser.Scene {
     }
 
     create() {
-        let bg = this.add.image(500, 300, 'lvl_menu_bg');
-        bg.setDisplaySize(1000, 600);
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         let overlay = this.add.graphics();
         overlay.fillStyle(0x000000, 0.85);
         overlay.fillRect(0, 0, 1000, 600);
 
-        this.add.text(500, 70, 'SELECT STAGE', {
-            fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
-            fontSize: '60px',
-            color: '#b6ff00',
-            strokeThickness: 0
+        this.add.text(500, 70, 'เลือกด่าน (SELECT STAGE)', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '54px',
+            fontWeight: 'bold',
+            color: '#ffd700',
+            stroke: '#4a1212',
+            strokeThickness: 8
         }).setOrigin(0.5).setShadow(4, 6, '#000', 0, false, true);
 
         let stages = [
@@ -1476,20 +1636,19 @@ class CategoryMenu extends Phaser.Scene {
             let cx = startX + (col * spacingX);
             let cy = startY + (row * spacingY);
             
-            // Premium Card Frame
+            // Premium Thai Card Frame
             let cardBg = this.add.graphics();
-            cardBg.fillStyle(0x1a1a1a, 1);
-            cardBg.fillRoundedRect(cx - 120, cy - 70, 240, 140, 10);
+            drawThaiFrame(cardBg, cx - 120, cy - 70, 240, 140, 12);
             
             let cardInner = this.add.graphics();
-            cardInner.fillStyle(0x2d3436, 1);
-            cardInner.fillRoundedRect(cx - 116, cy - 66, 232, 132, 8);
+            cardInner.fillStyle(0x3a1007, 1);
+            cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
             
             // Big Number 
             let numTxt = this.add.text(cx, cy - 15, st.num, {
                 fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
                 fontSize: '80px',
-                color: '#666666'
+                color: '#a08070'
             }).setOrigin(0.5);
             
             // Name Text
@@ -1504,19 +1663,19 @@ class CategoryMenu extends Phaser.Scene {
             
             zone.on('pointerover', () => {
                 cardInner.clear();
-                cardInner.fillStyle(0x51b87a, 1);
-                cardInner.fillRoundedRect(cx - 116, cy - 66, 232, 132, 8);
-                title.setColor('#000000');
-                numTxt.setColor('#000000');
+                cardInner.fillStyle(0x7a0c08, 1); // glowing crimson on hover
+                cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
+                title.setColor('#ffd700'); // Gold text on hover
+                numTxt.setColor('#ffffff');
                 this.tweens.add({ targets: numTxt, y: cy - 25, duration: 100 });
             });
             
             zone.on('pointerout', () => {
                 cardInner.clear();
-                cardInner.fillStyle(0x2d3436, 1);
-                cardInner.fillRoundedRect(cx - 116, cy - 66, 232, 132, 8);
+                cardInner.fillStyle(0x3a1007, 1);
+                cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
                 title.setColor('#ffffff');
-                numTxt.setColor('#666666');
+                numTxt.setColor('#a08070');
                 this.tweens.add({ targets: numTxt, y: cy - 15, duration: 100 });
             });
             
