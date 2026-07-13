@@ -489,7 +489,7 @@ class GamePlay extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Setup Player (Hanuman) - starts at far left
-        this.gameState.player = this.add.sprite(130, 427, 'player_idle').setOrigin(0.5, 1).setDepth(2);
+        this.gameState.player = this.add.sprite(130, 442, 'player_idle').setOrigin(0.5, 0.82).setDepth(2);
         this.gameState.player.setScale(1.2);
 
         // Gold Aura Foot Particles
@@ -750,7 +750,7 @@ class GamePlay extends Phaser.Scene {
 
                     // Player spawns off-screen left and moves back to x = 130
                     this.gameState.player.x = -100;
-                    this.gameState.player.y = 427;
+                    this.gameState.player.y = 442;
                     this.tweens.add({
                         targets: this.gameState.player,
                         x: 130,
@@ -826,7 +826,7 @@ class GamePlay extends Phaser.Scene {
         // Spawn Enemy (Exclusively Yaksa for all stages)
         let isFloating = false;
         let mKey = 'enemy_yaksa';
-        let spawnY = 427;
+        let spawnY = 442;
         let baseScale = this.gameState.isBossFight ? 1.6 : 1.25;
 
         this.gameState.zombie = this.add.sprite(950, spawnY, mKey).setOrigin(0.5, 1).setDepth(2);
