@@ -1,18 +1,15 @@
-function drawThaiFrame(graphics, x, y, w, h, radius = 12) {
-    graphics.fillStyle(0x2b0d06, 0.95);
+function drawThaiFrame(graphics, x, y, w, h, radius = 16) {
+    // 1. Sleek soft drop shadow
+    graphics.fillStyle(0x000000, 0.15);
+    graphics.fillRoundedRect(x + 2, y + 4, w, h, radius);
+
+    // 2. Thin premium gold border
+    graphics.fillStyle(0xd97706, 1); 
     graphics.fillRoundedRect(x, y, w, h, radius);
     
-    graphics.lineStyle(4, 0xd4af37, 1);
-    graphics.strokeRoundedRect(x, y, w, h, radius);
-
-    graphics.lineStyle(1.5, 0xffd700, 0.75);
-    graphics.strokeRoundedRect(x + 4, y + 4, w - 8, h - 8, radius - 2);
-
-    graphics.fillStyle(0xffd700, 1);
-    graphics.fillCircle(x + 8, y + 8, 4);
-    graphics.fillCircle(x + w - 8, y + 8, 4);
-    graphics.fillCircle(x + 8, y + h - 8, 4);
-    graphics.fillCircle(x + w - 8, y + h - 8, 4);
+    // 3. Clean inside container (creamy warm white)
+    graphics.fillStyle(0xfffbeb, 0.98); 
+    graphics.fillRoundedRect(x + 2, y + 2, w - 4, h - 4, radius - 2);
 }
 
 class MainMenu extends Phaser.Scene {
@@ -47,10 +44,8 @@ class MainMenu extends Phaser.Scene {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '85px',
             fontWeight: 'bold',
-            color: '#ffd700', // Gold
-            stroke: '#4a1212', // Deep red stroke
-            strokeThickness: 12
-        }).setOrigin(0.5).setShadow(6, 8, '#000000', 0, false, true);
+            color: '#7f1d1d', // Premium crimson red
+        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 4);
 
         titleBlock.add(titleText);
 
@@ -65,11 +60,10 @@ class MainMenu extends Phaser.Scene {
 
         this.add.text(500, 245, 'ศึกรามเกียรติ์คำศัพท์ภาษาอังกฤษ', {
             fontFamily: 'Kanit, sans-serif',
-            fontSize: '32px',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setShadow(4, 6, '#000000', 0, false, true);
+            fontSize: '30px',
+            fontWeight: 'bold',
+            color: '#b45309', // Sleek warm amber
+        }).setOrigin(0.5);
 
         // Start Button 
         let btnStart = createChoiceButton(this, 500, 390, 'เข้าสู่ยุทธภพ (เริ่มเล่น)', () => {
@@ -130,60 +124,8 @@ class GamePlay extends Phaser.Scene {
                     ]
                 },
                 {
-                    stageName: "ด่าน 2: ผลไม้ (Fruits)",
-                    wordsToPass: 10,
-                    words: [
-                        { eng: 'Apple', c1: 'แอปเปิล', c2: 'ส้ม', ans: 1 },
-                        { eng: 'Banana', c1: 'แตงโม', c2: 'กล้วย', ans: 2 },
-                        { eng: 'Orange', c1: 'ส้ม', c2: 'มะละกอ', ans: 1 },
-                        { eng: 'Grape', c1: 'ข้าว', c2: 'องุ่น', ans: 2 },
-                        { eng: 'Melon', c1: 'เมลอน', c2: 'มะม่วง', ans: 1 },
-                        { eng: 'Watermelon', c1: 'แตงโม', c2: 'มะพร้าว', ans: 1 },
-                        { eng: 'Papaya', c1: 'มังคุด', c2: 'มะละกอ', ans: 2 },
-                        { eng: 'Mango', c1: 'มะม่วง', c2: 'ส้มโอ', ans: 1 },
-                        { eng: 'Coconut', c1: 'มะละกอ', c2: 'มะพร้าว', ans: 2 },
-                        { eng: 'Pineapple', c1: 'สับปะรด', c2: 'เชอร์รี', ans: 1 },
-                        { eng: 'Strawberry', c1: 'กล้วย', c2: 'สตรอว์เบอร์รี', ans: 2 },
-                        { eng: 'Cherry', c1: 'เชอร์รี', c2: 'แอปเปิล', ans: 1 },
-                        { eng: 'Peach', c1: 'ลิ้นจี่', c2: 'พีช', ans: 2 },
-                        { eng: 'Pear', c1: 'สาลี่', c2: 'ฝรั่ง', ans: 1 },
-                        { eng: 'Kiwi', c1: 'กีวี', c2: 'องุ่น', ans: 1 },
-                        { eng: 'Lemon', c1: 'ส้ม', c2: 'มะนาว', ans: 2 },
-                        { eng: 'Pomelo', c1: 'ส้มโอ', c2: 'มะพร้าว', ans: 1 },
-                        { eng: 'Guava', c1: 'ฝรั่ง', c2: 'แตงโม', ans: 1 },
-                        { eng: 'Lychee', c1: 'เชอร์รี', c2: 'ลิ้นจี่', ans: 2 },
-                        { eng: 'Mangosteen', c1: 'มังคุด', c2: 'ส้ม', ans: 1 }
-                    ]
-                },
-                {
-                    stageName: "ด่าน 3: กริยา (Verbs)",
-                    wordsToPass: 15,
-                    words: [
-                        { eng: 'Run', c1: 'เดิน', c2: 'วิ่ง', ans: 2 },
-                        { eng: 'Eat', c1: 'กิน', c2: 'ดื่ม', ans: 1 },
-                        { eng: 'Drink', c1: 'นอน', c2: 'ดื่ม', ans: 2 },
-                        { eng: 'Sleep', c1: 'นอนหลับ', c2: 'ตื่น', ans: 1 },
-                        { eng: 'Walk', c1: 'วิ่ง', c2: 'เดิน', ans: 2 },
-                        { eng: 'Jump', c1: 'กระโดด', c2: 'ว่ายน้ำ', ans: 1 },
-                        { eng: 'Swim', c1: 'กระโดด', c2: 'ว่ายน้ำ', ans: 2 },
-                        { eng: 'Read', c1: 'อ่าน', c2: 'เขียน', ans: 1 },
-                        { eng: 'Write', c1: 'พูด', c2: 'เขียน', ans: 2 },
-                        { eng: 'Speak', c1: 'พูด', c2: 'ฟัง', ans: 1 },
-                        { eng: 'Listen', c1: 'มอง', c2: 'ฟัง', ans: 2 },
-                        { eng: 'Look', c1: 'มอง', c2: 'เห็น', ans: 1 },
-                        { eng: 'See', c1: 'คิด', c2: 'เห็น', ans: 2 },
-                        { eng: 'Think', c1: 'คิด', c2: 'ทำงาน', ans: 1 },
-                        { eng: 'Work', c1: 'เล่น', c2: 'ทำงาน', ans: 2 },
-                        { eng: 'Play', c1: 'เล่น', c2: 'ซื้อ', ans: 1 },
-                        { eng: 'Stand', c1: 'นั่ง', c2: 'ยืน', ans: 2 },
-                        { eng: 'Sit', c1: 'นั่ง', c2: 'เดิน', ans: 1 },
-                        { eng: 'Buy', c1: 'ขาย', c2: 'ซื้อ', ans: 2 },
-                        { eng: 'Sell', c1: 'ขาย', c2: 'ทำงาน', ans: 1 }
-                    ]
-                },
-                {
-                    stageName: "ด่าน 4: ร่างกาย (Body)",
-                    wordsToPass: 15,
+                    stageName: "ด่าน 2: ร่างกาย (Body)",
+                    wordsToPass: 12,
                     words: [
                         { eng: 'Head', c1: 'หัว', c2: 'แขน', ans: 1 },
                         { eng: 'Hand', c1: 'ขา', c2: 'มือ', ans: 2 },
@@ -208,29 +150,81 @@ class GamePlay extends Phaser.Scene {
                     ]
                 },
                 {
-                    stageName: "ด่าน 5: สี (Colors)",
+                    stageName: "ด่าน 3: ผักและผลไม้ (Fruits & Vegetables)",
                     wordsToPass: 12,
                     words: [
-                        { eng: 'Red', c1: 'แดง', c2: 'เขียว', ans: 1 },
-                        { eng: 'Blue', c1: 'เหลือง', c2: 'น้ำเงิน', ans: 2 },
-                        { eng: 'Green', c1: 'เขียว', c2: 'ม่วง', ans: 1 },
-                        { eng: 'Yellow', c1: 'ส้ม', c2: 'เหลือง', ans: 2 },
-                        { eng: 'White', c1: 'ขาว', c2: 'ดำ', ans: 1 },
-                        { eng: 'Black', c1: 'น้ำตาล', c2: 'ดำ', ans: 2 },
-                        { eng: 'Pink', c1: 'ชมพู', c2: 'แดง', ans: 1 },
-                        { eng: 'Purple', c1: 'น้ำเงิน', c2: 'ม่วง', ans: 2 },
-                        { eng: 'Orange', c1: 'ส้ม', c2: 'เหลือง', ans: 1 },
-                        { eng: 'Brown', c1: 'เทา', c2: 'น้ำตาล', ans: 2 },
-                        { eng: 'Gray', c1: 'เทา', c2: 'ขาว', ans: 1 },
-                        { eng: 'Gold', c1: 'เงิน', c2: 'ทอง', ans: 2 },
-                        { eng: 'Silver', c1: 'เงิน', c2: 'ทอง', ans: 1 },
-                        { eng: 'Cream', c1: 'น้ำตาล', c2: 'ครีม', ans: 2 },
-                        { eng: 'Violet', c1: 'ม่วงอ่อน', c2: 'ชมพู', ans: 1 },
-                        { eng: 'Cyan', c1: 'เขียว', c2: 'ฟ้าอมเขียว', ans: 2 },
-                        { eng: 'Maroon', c1: 'แดงเข้ม', c2: 'ส้ม', ans: 1 },
-                        { eng: 'Navy', c1: 'ม่วง', c2: 'กรมท่า', ans: 2 },
-                        { eng: 'Beige', c1: 'เบจ', c2: 'เทา', ans: 1 },
-                        { eng: 'Scarlet', c1: 'ชมพู', c2: 'แดงสด', ans: 2 }
+                        { eng: 'Apple', c1: 'แอปเปิล', c2: 'ส้ม', ans: 1 },
+                        { eng: 'Banana', c1: 'แตงโม', c2: 'กล้วย', ans: 2 },
+                        { eng: 'Orange', c1: 'ส้ม', c2: 'มะละกอ', ans: 1 },
+                        { eng: 'Grape', c1: 'ข้าว', c2: 'องุ่น', ans: 2 },
+                        { eng: 'Watermelon', c1: 'แตงโม', c2: 'มะพร้าว', ans: 1 },
+                        { eng: 'Mango', c1: 'มะม่วง', c2: 'ส้มโอ', ans: 1 },
+                        { eng: 'Coconut', c1: 'มะละกอ', c2: 'มะพร้าว', ans: 2 },
+                        { eng: 'Pineapple', c1: 'สับปะรด', c2: 'เชอร์รี', ans: 1 },
+                        { eng: 'Strawberry', c1: 'กล้วย', c2: 'สตรอว์เบอร์รี', ans: 2 },
+                        { eng: 'Papaya', c1: 'มังคุด', c2: 'มะละกอ', ans: 2 },
+                        { eng: 'Carrot', c1: 'แครอท', c2: 'มันฝรั่ง', ans: 1 },
+                        { eng: 'Tomato', c1: 'แตงกวา', c2: 'มะเขือเทศ', ans: 2 },
+                        { eng: 'Potato', c1: 'มันฝรั่ง', c2: 'หัวหอม', ans: 1 },
+                        { eng: 'Pumpkin', c1: 'ผักโขม', c2: 'ฟักทอง', ans: 2 },
+                        { eng: 'Cabbage', c1: 'กะหล่ำปลี', c2: 'บรอกโคลี', ans: 1 },
+                        { eng: 'Onion', c1: 'กระเทียม', c2: 'หอมหัวใหญ่', ans: 2 },
+                        { eng: 'Garlic', c1: 'กระเทียม', c2: 'แตงกวา', ans: 1 },
+                        { eng: 'Cucumber', c1: 'พริก', c2: 'แตงกวา', ans: 2 },
+                        { eng: 'Spinach', c1: 'ผักโขม', c2: 'ผักกาดขาว', ans: 1 },
+                        { eng: 'Broccoli', c1: 'แครอท', c2: 'บรอกโคลี', ans: 2 }
+                    ]
+                },
+                {
+                    stageName: "ด่าน 4: วิทยาศาสตร์ (Science)",
+                    wordsToPass: 12,
+                    words: [
+                        { eng: 'Atom', c1: 'อะตอม', c2: 'โมเลกุล', ans: 1 },
+                        { eng: 'Cell', c1: 'เนื้อเยื่อ', c2: 'เซลล์', ans: 2 },
+                        { eng: 'Energy', c1: 'พลังงาน', c2: 'แรงดัน', ans: 1 },
+                        { eng: 'Gravity', c1: 'แรงดึงดูด', c2: 'แรงโน้มถ่วง', ans: 2 },
+                        { eng: 'Oxygen', c1: 'ออกซิเจน', c2: 'คาร์บอน', ans: 1 },
+                        { eng: 'Planet', c1: 'ดาวฤกษ์', c2: 'ดาวเคราะห์', ans: 2 },
+                        { eng: 'Chemical', c1: 'สารเคมี', c2: 'สารละลาย', ans: 1 },
+                        { eng: 'Fossil', c1: 'แร่ธาตุ', c2: 'ฟอสซิล', ans: 2 },
+                        { eng: 'Galaxy', c1: 'กาแล็กซี', c2: 'ระบบสุริยะ', ans: 1 },
+                        { eng: 'Magnet', c1: 'เหล็ก', c2: 'แม่เหล็ก', ans: 2 },
+                        { eng: 'Force', c1: 'แรง', c2: 'ความเร็ว', ans: 1 },
+                        { eng: 'Acid', c1: 'ด่าง', c2: 'กรด', ans: 2 },
+                        { eng: 'Bacteria', c1: 'แบคทีเรีย', c2: 'ไวรัส', ans: 1 },
+                        { eng: 'Evolution', c1: 'วิวัฒนาการ', c2: 'การกลายพันธุ์', ans: 1 },
+                        { eng: 'Element', c1: 'สารประกอบ', c2: 'ธาตุ', ans: 2 },
+                        { eng: 'Experiment', c1: 'การทดลอง', c2: 'ทฤษฎี', ans: 1 },
+                        { eng: 'Microscope', c1: 'กล้องส่องทางไกล', c2: 'กล้องจุลทรรศน์', ans: 2 },
+                        { eng: 'Organism', c1: 'สิ่งมีชีวิต', c2: 'สภาพแวดล้อม', ans: 1 },
+                        { eng: 'Temperature', c1: 'ความร้อน', c2: 'อุณหภูมิ', ans: 2 },
+                        { eng: 'Universe', c1: 'จักรวาล', c2: 'อวกาศ', ans: 1 }
+                    ]
+                },
+                {
+                    stageName: "ด่าน 5: อุปกรณ์คอมพิวเตอร์ (Computer Equipment)",
+                    wordsToPass: 12,
+                    words: [
+                        { eng: 'Computer', c1: 'คอมพิวเตอร์', c2: 'โทรทัศน์', ans: 1 },
+                        { eng: 'Keyboard', c1: 'เมาส์', c2: 'คีย์บอร์ด', ans: 2 },
+                        { eng: 'Mouse', c1: 'เมาส์', c2: 'แป้นพิมพ์', ans: 1 },
+                        { eng: 'Monitor', c1: 'หน้าจอ', c2: 'ลำโพง', ans: 1 },
+                        { eng: 'Printer', c1: 'สแกนเนอร์', c2: 'เครื่องพิมพ์', ans: 2 },
+                        { eng: 'Speaker', c1: 'ลำโพง', c2: 'หูฟัง', ans: 1 },
+                        { eng: 'Headphones', c1: 'ไมโครโฟน', c2: 'หูฟัง', ans: 2 },
+                        { eng: 'Microphone', c1: 'ไมโครโฟน', c2: 'กล้อง', ans: 1 },
+                        { eng: 'Webcam', c1: 'กล้องเว็บแคม', c2: 'โปรเจคเตอร์', ans: 1 },
+                        { eng: 'Router', c1: 'โมเด็ม', c2: 'เราเตอร์', ans: 2 },
+                        { eng: 'Hard drive', c1: 'ฮาร์ดไดรฟ์', c2: 'แฟลชไดรฟ์', ans: 1 },
+                        { eng: 'Keyboard pad', c1: 'แผ่นรองเมาส์', c2: 'แผ่นรองคีย์บอร์ด', ans: 2 },
+                        { eng: 'CPU', c1: 'ซีพียู', c2: 'เมนบอร์ด', ans: 1 },
+                        { eng: 'Motherboard', c1: 'การ์ดจอ', c2: 'เมนบอร์ด', ans: 2 },
+                        { eng: 'Graphics card', c1: 'การ์ดจอ', c2: 'แรม', ans: 1 },
+                        { eng: 'RAM', c1: 'ฮาร์ดดิสก์', c2: 'แรม', ans: 2 },
+                        { eng: 'Power supply', c1: 'พาวเวอร์ซัพพลาย', c2: 'สายไฟ', ans: 1 },
+                        { eng: 'USB flash drive', c1: 'เมมโมรี่การ์ด', c2: 'แฟลชไดรฟ์', ans: 2 },
+                        { eng: 'Scanner', c1: 'เครื่องสแกน', c2: 'เครื่องแฟกซ์', ans: 1 },
+                        { eng: 'Projector', c1: 'จอภาพ', c2: 'เครื่องโปรเจคเตอร์', ans: 2 }
                     ]
                 },
                 {
@@ -252,7 +246,7 @@ class GamePlay extends Phaser.Scene {
                         { eng: 'Wife', c1: 'ภรรยา', c2: 'สามี', ans: 1 },
                         { eng: 'Nephew', c1: 'หลานชาย', c2: 'หลานสาว', ans: 1 },
                         { eng: 'Niece', c1: 'ลูกสาว', c2: 'หลานสาว', ans: 2 },
-                        { eng: 'Baby', c1: 'ทารก', c2: 'เด็ก', ans: 1 },
+                        { eng: 'Relatives', c1: 'ญาติ', c2: 'เพื่อน', ans: 1 },
                         { eng: 'Child', c1: 'ผู้ใหญ่', c2: 'เด็ก', ans: 2 },
                         { eng: 'Parent', c1: 'ผู้ปกครอง', c2: 'ญาติ', ans: 1 },
                         { eng: 'Family', c1: 'เพื่อน', c2: 'ครอบครัว', ans: 2 },
@@ -382,7 +376,7 @@ class GamePlay extends Phaser.Scene {
                             // Crash down
                             this.tweens.add({
                                 targets: this.gameState.player,
-                                y: 480,
+                                y: 425,
                                 angle: -90,
                                 duration: 250,
                                 ease: 'Bounce.easeOut',
@@ -433,16 +427,16 @@ class GamePlay extends Phaser.Scene {
         let avatar = this.add.image(55, 55, 'player_idle').setScale(0.08).setOrigin(0.5);
         
         // HP Label
-        this.add.text(100, 35, 'HP', { fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#ffea00', padding: { top: 5, bottom: 5 } });
+        this.add.text(100, 35, 'HP', { fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#1e293b', padding: { top: 5, bottom: 5 } });
 
-        // Health Bar Implementation
-        let hpBg = this.add.graphics().fillStyle(0x5c0905, 1).fillRect(140, 42, 140, 20);
+        // Health Bar Implementation (Sleek Modern Slate / Emerald Green)
+        let hpBg = this.add.graphics().fillStyle(0xe2e8f0, 1).fillRoundedRect(140, 42, 140, 20, 4);
         this.gameState.hpBar = this.add.graphics();
         this.updateHpBar = () => {
             this.gameState.hpBar.clear();
-            this.gameState.hpBar.fillStyle(0xff3333, 1);
+            this.gameState.hpBar.fillStyle(0x22c55e, 1); // Emerald green for HP
             let w = (this.gameState.hp / this.gameState.maxHp) * 140;
-            if (w > 0) this.gameState.hpBar.fillRect(140, 42, w, 20);
+            if (w > 0) this.gameState.hpBar.fillRoundedRect(140, 42, w, 20, 4);
         };
         this.updateHpBar();
         
@@ -451,7 +445,7 @@ class GamePlay extends Phaser.Scene {
         drawThaiFrame(stageFrame, 350, 15, 300, 45, 10);
 
         this.gameState.stageText = this.add.text(500, 36, this.gameState.vocabData[this.gameState.currentStageIdx].stageName, {
-            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '24px', color: '#ffffff', padding: { top: 10, bottom: 10 }
+            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '24px', color: '#1e293b', padding: { top: 10, bottom: 10 }
         }).setOrigin(0.5);
 
         // 3. Score & Settings Box (Top Right)
@@ -459,11 +453,11 @@ class GamePlay extends Phaser.Scene {
         drawThaiFrame(scoreFrame, 720, 15, 200, 50, 10);
         
         this.gameState.scoreText = this.add.text(820, 40, 'SCORE: 0', {
-            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#ffd700'
+            fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '26px', color: '#1e293b'
         }).setOrigin(0.5);
 
         // Pause Button
-        let pauseBtn = this.add.text(960, 40, '⏸', { fontSize: '40px', color: '#ffd700' })
+        let pauseBtn = this.add.text(960, 40, '⏸', { fontSize: '40px', color: '#d97706' })
             .setOrigin(0.5)
             .setInteractive({useHandCursor: true});
 
@@ -474,26 +468,24 @@ class GamePlay extends Phaser.Scene {
             this.scene.launch('PauseMenu');
         });
 
-        // Wood texture Sign for current word
+        // Sign signboard for current word
         let wordSign = this.add.graphics();
         drawThaiFrame(wordSign, 300, 115, 400, 80, 15);
 
         this.gameState.wordText = this.add.text(500, 155, 'เริ่มศึก', { 
-            fontSize: '56px', 
+            fontSize: '52px', 
             fontFamily: 'Mitr, Kanit, sans-serif', 
             fontWeight: 'bold',
-            color: '#ffd700',
-            stroke: '#000000',
-            strokeThickness: 8,
+            color: '#1e293b', // Clean slate text
             padding: { top: 15, bottom: 15 }
         }).setOrigin(0.5);
 
         // Setup Player (Hanuman) - starts at far left
-        this.gameState.player = this.add.sprite(130, 442, 'player_idle').setOrigin(0.5, 0.82).setDepth(2);
+        this.gameState.player = this.add.sprite(130, 425, 'player_idle').setOrigin(0.5, 1).setDepth(2);
         this.gameState.player.setScale(1.2);
 
         // Gold Aura Foot Particles
-        this.gameState.auraParticles = this.add.particles(200, 475, 'ef_fireball1', {
+        this.gameState.auraParticles = this.add.particles(130, 420, 'ef_fireball1', {
             scale: { start: 0.08, end: 0 },
             speedY: { min: -120, max: -40 },
             speedX: { min: -25, max: 25 },
@@ -571,8 +563,8 @@ class GamePlay extends Phaser.Scene {
                             scaleY: 1.2,
                             scaleX: 1.2,
                             angle: 0,
-                            x: 200,
-                            y: 480,
+                            x: 130,
+                            y: 425,
                             duration: 200,
                             onComplete: () => {
                                 if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
@@ -750,7 +742,7 @@ class GamePlay extends Phaser.Scene {
 
                     // Player spawns off-screen left and moves back to x = 130
                     this.gameState.player.x = -100;
-                    this.gameState.player.y = 442;
+                    this.gameState.player.y = 425;
                     this.tweens.add({
                         targets: this.gameState.player,
                         x: 130,
@@ -839,7 +831,7 @@ class GamePlay extends Phaser.Scene {
         // Reset player to idle position at far left
         if (this.gameState.player && !this.gameState.isAnimating) {
             this.gameState.player.x = 130;
-            this.gameState.player.y = 480;
+            this.gameState.player.y = 425;
         }
 
         // Hover sine wave with glowing trail for Krasue, heavy walking stomp for Giants
@@ -1127,7 +1119,7 @@ class GamePlay extends Phaser.Scene {
                             this.tweens.add({
                                 targets: this.gameState.player,
                                 x: this.gameState.zombie.x - 45,
-                                y: 480,
+                                y: 425,
                                 angle: 720,
                                 duration: 180,
                                 ease: 'Quad.easeIn',
@@ -1138,7 +1130,7 @@ class GamePlay extends Phaser.Scene {
                                     this.tweens.add({ targets: flash, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
 
                                     // Dust shockwave rings
-                                    let ring = this.add.circle(this.gameState.zombie.x - 45, 480, 20).setStrokeStyle(4, 0xffffff, 0.8).setDepth(1);
+                                    let ring = this.add.circle(this.gameState.zombie.x - 45, 425, 20).setStrokeStyle(4, 0xffffff, 0.8).setDepth(1);
                                     this.tweens.add({ targets: ring, radius: 100, alpha: 0, duration: 300, onComplete: () => ring.destroy() });
 
                                     // Contact explosion
@@ -1152,7 +1144,7 @@ class GamePlay extends Phaser.Scene {
                                     this.tweens.add({
                                         targets: this.gameState.player,
                                         x: 130,
-                                        y: 480,
+                                        y: 425,
                                         angle: 0,
                                         duration: 350,
                                         ease: 'Bounce.easeOut',
@@ -1215,7 +1207,7 @@ class GamePlay extends Phaser.Scene {
                         this.tweens.add({
                             targets: this.gameState.player,
                             x: 130,
-                            y: 480,
+                            y: 425,
                             angle: 0,
                             duration: 250,
                             onComplete: () => {
@@ -1300,7 +1292,7 @@ class GamePlay extends Phaser.Scene {
                                                     this.tweens.add({
                                                         targets: this.gameState.player,
                                                         x: 130,
-                                                        y: 480,
+                                                        y: 425,
                                                         angle: 0,
                                                         duration: 250,
                                                         onComplete: () => {
@@ -1358,12 +1350,12 @@ class PauseMenu extends Phaser.Scene {
         let panelFrame = this.add.graphics();
         drawThaiFrame(panelFrame, 200, 80, 600, 440, 16);
 
-        this.add.text(500, 160, 'หยุดเกมชั่วคราว', {
-            fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
-            fontSize: '60px',
-            color: '#ffea00',
-            strokeThickness: 0
-        }).setOrigin(0.5).setShadow(4, 6, '#000000', 0, false, true);
+        this.add.text(500, 150, 'หยุดเกมชั่วคราว', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '50px',
+            fontWeight: 'bold',
+            color: '#7f1d1d',
+        }).setOrigin(0.5);
 
         // Resume Button
         createChoiceButton(this, 500, 270, 'เล่นต่อ', () => {
@@ -1386,62 +1378,83 @@ class PauseMenu extends Phaser.Scene {
     }
 }
 
-function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSize = '32px') {
+function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSize = '28px') {
     let container = scene.add.container(x, y);
     container.setDepth(10); // Bring buttons to the front (above characters which are depth 2)
 
     let cx = -(w/2);
     let cy = -(h/2);
 
-    // Drop Shadow
+    // 1. Sleek soft drop shadow
     let shadow = scene.add.graphics();
-    shadow.fillStyle(0x000000, 0.4);
-    shadow.fillRoundedRect(cx + 6, cy + 8, w, h, 8);
+    shadow.fillStyle(0x000000, 0.15);
+    shadow.fillRoundedRect(cx + 2, cy + 4, w, h, 12);
 
-    // Black Outer Border
-    let bOuter = scene.add.graphics();
-    bOuter.fillStyle(0x3a1007, 1); // Dark teak wood brown
-    bOuter.fillRoundedRect(cx, cy, w, h, 8);
-    
-    // Dark Red lower shadow
-    let bDark = scene.add.graphics();
-    bDark.fillStyle(0x5c0905, 1); // Deep blood red
-    bDark.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 8, 6);
+    // 2. Thin gold/amber border outline
+    let border = scene.add.graphics();
+    border.fillStyle(0xd97706, 1);
+    border.fillRoundedRect(cx, cy, w, h, 12);
 
-    // Main Red Base
-    let bBase = scene.add.graphics();
-    bBase.fillStyle(0x9e100b, 1); // Rich crimson red
-    bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
+    // 3. Flat premium button body (deep dark slate blue)
+    let body = scene.add.graphics();
+    body.fillStyle(0x1e293b, 1);
+    body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
 
-    // Top Gold Highlight (Thai Temple Accent)
-    let bLight = scene.add.graphics();
-    bLight.fillStyle(0xd4af37, 1); // Temple gold
-    bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
-
-    let btnText = scene.add.text(0, -2, textStr, {
+    let btnText = scene.add.text(0, 0, textStr, {
         fontSize: fSize,
         fontFamily: 'Kanit, sans-serif',
         fontWeight: 'bold',
-        color: '#ffd700', // Gold text
-        padding: { top: 10, bottom: 10 },
-        stroke: '#000000',
-        strokeThickness: 4
+        color: '#ffffff', // Clean white text
     }).setOrigin(0.5);
 
-    container.add([shadow, bOuter, bDark, bBase, bLight, btnText]);
+    container.add([shadow, border, body, btnText]);
 
     let hitZone = scene.add.zone(0, 0, w, h).setInteractive({ useHandCursor: true });
+    
+    // Modern hover animations
+    hitZone.on('pointerover', () => {
+        body.clear();
+        body.fillStyle(0x334155, 1); // Lighter slate on hover
+        body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
+        btnText.setColor('#fbbf24'); // Gold text on hover
+        scene.tweens.add({
+            targets: container,
+            scaleX: 1.04,
+            scaleY: 1.04,
+            duration: 100,
+            ease: 'Quad.easeOut'
+        });
+    });
+    
+    hitZone.on('pointerout', () => {
+        body.clear();
+        body.fillStyle(0x1e293b, 1);
+        body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
+        btnText.setColor('#ffffff');
+        scene.tweens.add({
+            targets: container,
+            scaleX: 1.0,
+            scaleY: 1.0,
+            duration: 100,
+            ease: 'Quad.easeOut'
+        });
+    });
+
     hitZone.on('pointerdown', () => {
-        bBase.fillStyle(0x5c0905, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
-        bLight.fillStyle(0x9e100b, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
-        container.y += 4;
+        // Press feedback
+        body.clear();
+        body.fillStyle(0x0f172a, 1); // Darkest slate
+        body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
+        container.y += 2;
         setTimeout(() => { 
-            bBase.fillStyle(0x9e100b, 1); bBase.fillRoundedRect(cx + 4, cy + 4, w - 8, h - 14, 6);
-            bLight.fillStyle(0xd4af37, 1); bLight.fillRoundedRect(cx + 4, cy + 4, w - 8, 8, 6);
-            container.y -= 4; 
-        }, 100);
+            body.clear();
+            body.fillStyle(0x1e293b, 1);
+            body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
+            container.y -= 2; 
+        }, 80);
         onClick();
     });
+    
     container.add(hitZone);
 
     return { container, text: btnText };
@@ -1463,21 +1476,21 @@ class SettingsMenu extends Phaser.Scene {
         let panelFrame = this.add.graphics();
         drawThaiFrame(panelFrame, 200, 40, 600, 520, 16);
 
-        this.add.text(500, 95, 'ตั้งค่าความยาก', {
-            fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
-            fontSize: '60px',
-            color: '#ffea00',
-            strokeThickness: 0
-        }).setOrigin(0.5).setShadow(4, 6, '#000000', 0, false, true);
+        this.add.text(500, 90, 'ตั้งค่าความยาก', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '50px',
+            fontWeight: 'bold',
+            color: '#7f1d1d',
+        }).setOrigin(0.5);
 
         // Difficulty Setting
         let difficulty = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
         let diffLabel = this.add.text(500, 215, 'ความเร็วซอมบี้: ' + (difficulty === 10000 ? 'ช้า (10วิ)' : (difficulty === 6000 ? 'ปานกลาง (6วิ)' : 'เร็วทะลุนรก (3วิ)')), {
-            fontFamily: '"PixelGame", Kanit',
-            fontSize: '32px',
-            color: '#ffffff',
-            strokeThickness: 0
-        }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            color: '#1e293b',
+        }).setOrigin(0.5);
 
         createChoiceButton(this, 500, 300, 'เปลี่ยนระดับ', () => {
             if(difficulty === 10000) difficulty = 6000;
@@ -1492,10 +1505,10 @@ class SettingsMenu extends Phaser.Scene {
             localStorage.setItem('zombieHighScore', 0);
             let prevText = diffLabel.text;
             diffLabel.setText('ล้างข้อมูลเรียบร้อย!');
-            diffLabel.setColor('#00ff00');
+            diffLabel.setColor('#16a34a');
             setTimeout(() => {
                 diffLabel.setText(prevText);
-                diffLabel.setColor('#ffffff');
+                diffLabel.setColor('#1e293b');
             }, 1000);
         });
 
@@ -1521,74 +1534,55 @@ class GameOverScene extends Phaser.Scene {
         let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         
         let overlay = this.add.graphics();
-        overlay.fillStyle(0x1c0505, 0.75); // Blood teak wood tone
+        overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
         overlay.fillRect(0, 0, 1000, 600);
 
         // Grand Thai Signboard Frame for Stats
         let statsFrame = this.add.graphics();
-        drawThaiFrame(statsFrame, 220, 190, 560, 220, 16);
+        drawThaiFrame(statsFrame, 220, 180, 560, 220, 16);
 
         // Title: พ่ายแพ้ศึก (DEFEATED / GAME OVER)
-        let titleText = this.add.text(500, 110, 'พ่ายแพ้ศึก', {
+        let titleText = this.add.text(500, 100, 'พ่ายแพ้ศึก', {
             fontFamily: 'Mitr, Kanit, sans-serif',
-            fontSize: '90px',
+            fontSize: '80px',
             fontWeight: 'bold',
-            stroke: '#2b0202',
-            strokeThickness: 12
-        }).setOrigin(0.5).setShadow(0, 8, '#000', 0, false, true);
+            color: '#ef4444' // clean red
+        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.2)', 2);
 
-        // Create beautiful gold-to-red gradient for title text
-        let gradient = titleText.context.createLinearGradient(0, 0, 0, titleText.height);
-        gradient.addColorStop(0, '#ffd700'); // Gold
-        gradient.addColorStop(0.5, '#ffd700');
-        gradient.addColorStop(0.51, '#9e100b'); // Crimson
-        gradient.addColorStop(1, '#9e100b');
-        titleText.setFill(gradient);
-
-        this.add.text(500, 240, 'จบเกมที่ด่าน: ' + this.stageName, {
+        this.add.text(500, 230, 'จบเกมที่ด่าน: ' + this.stageName, {
             fontFamily: 'Kanit, sans-serif',
-            fontSize: '32px',
+            fontSize: '30px',
             fontWeight: 'bold',
-            color: '#ffffff',
-        }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
+            color: '#1e293b', // Deep slate on cream frame
+        }).setOrigin(0.5);
 
-        this.add.text(500, 295, 'คะแนนสะสม: ' + this.finalScore, {
+        this.add.text(500, 285, 'คะแนนสะสม: ' + this.finalScore, {
             fontFamily: 'Kanit, sans-serif',
-            fontSize: '36px',
+            fontSize: '34px',
             fontWeight: 'bold',
-            color: '#ffd700',
-        }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
+            color: '#b45309', // Sleek warm amber
+        }).setOrigin(0.5);
 
         let highScore = parseInt(localStorage.getItem('zombieHighScore')) || 0;
         if (this.finalScore > highScore) {
             highScore = this.finalScore;
             localStorage.setItem('zombieHighScore', highScore);
-            this.add.text(500, 355, '★ สถิติใหม่ยุทธภพ! ★', {
+            this.add.text(500, 345, '★ สถิติใหม่ยุทธภพ! ★', {
                 fontFamily: 'Kanit, sans-serif',
-                fontSize: '28px',
+                fontSize: '26px',
                 fontWeight: 'bold',
-                color: '#00ffcc',
-            }).setOrigin(0.5).setShadow(2, 4, '#000', 0, false, true);
+                color: '#16a34a', // Emerald green
+            }).setOrigin(0.5);
         }
 
         // 'สู้ต่อหรือไม่?' Prompt
-        this.add.text(500, 450, 'ต้องการสู้ต่ออีกครั้งหรือไม่?', { 
-            fontFamily: 'Kanit, sans-serif', fontSize: '32px', fontWeight: 'bold', color: '#ffffff'
-        }).setOrigin(0.5).setShadow(3, 5, '#000', 0, false, true);
+        this.add.text(500, 440, 'ต้องการสู้ต่ออีกครั้งหรือไม่?', { 
+            fontFamily: 'Kanit, sans-serif', fontSize: '28px', fontWeight: 'bold', color: '#ffffff'
+        }).setOrigin(0.5).setShadow(2, 3, 'rgba(0,0,0,0.5)', 2);
 
-        // YES / NO Cursor Menu
-        let yesBtn = this.add.text(400, 520, 'สู้ต่อ (YES)', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', fontWeight: 'bold', color: '#ffd700' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
-        let noBtn = this.add.text(600, 520, 'ยอมแพ้ (NO)', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', fontWeight: 'bold', color: '#ff4444' }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setShadow(2, 4, '#000', 0, false, true);
-
-        // Hanuman's Trident selector cursor
-        let cursor = this.add.text(0, 0, '🔱', { fontFamily: 'Kanit, sans-serif', fontSize: '38px', color: '#ffd700' }).setOrigin(1, 0.5).setShadow(2, 4, '#000', 0, false, true);
-        cursor.setPosition(yesBtn.x - 100, yesBtn.y);
-
-        yesBtn.on('pointerover', () => cursor.setPosition(yesBtn.x - 100, yesBtn.y));
-        noBtn.on('pointerover', () => cursor.setPosition(noBtn.x - 100, noBtn.y));
-
-        yesBtn.on('pointerdown', () => this.scene.start('GamePlay'));
-        noBtn.on('pointerdown', () => this.scene.start('MainMenu'));
+        // YES / NO modern choice buttons
+        createChoiceButton(this, 370, 520, 'สู้ต่อ (YES)', () => this.scene.start('GamePlay'), 220, 60, '26px');
+        createChoiceButton(this, 630, 520, 'ยอมแพ้ (NO)', () => this.scene.start('MainMenu'), 220, 60, '26px');
     }
 }
 
@@ -1604,24 +1598,24 @@ class CategoryMenu extends Phaser.Scene {
     create() {
         let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         let overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.85);
+        overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
         overlay.fillRect(0, 0, 1000, 600);
 
         this.add.text(500, 70, 'เลือกด่าน (SELECT STAGE)', {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '54px',
             fontWeight: 'bold',
-            color: '#ffd700',
-            stroke: '#4a1212',
-            strokeThickness: 8
-        }).setOrigin(0.5).setShadow(4, 6, '#000', 0, false, true);
+            color: '#ffffff',
+            stroke: '#1e3e6b',
+            strokeThickness: 6
+        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 2, false, true);
 
         let stages = [
             { name: 'ด่าน 1: สัตว์', num: '1' },
-            { name: 'ด่าน 2: ผลไม้', num: '2' },
-            { name: 'ด่าน 3: กริยา', num: '3' },
-            { name: 'ด่าน 4: ร่างกาย', num: '4' },
-            { name: 'ด่าน 5: สี', num: '5' },
+            { name: 'ด่าน 2: ร่างกาย', num: '2' },
+            { name: 'ด่าน 3: ผักและผลไม้', num: '3' },
+            { name: 'ด่าน 4: วิทยาศาสตร์', num: '4' },
+            { name: 'ด่าน 5: คอมพิวเตอร์', num: '5' },
             { name: 'ด่าน 6: ครอบครัว', num: '6' }
         ];
         
@@ -1636,26 +1630,33 @@ class CategoryMenu extends Phaser.Scene {
             let cx = startX + (col * spacingX);
             let cy = startY + (row * spacingY);
             
-            // Premium Thai Card Frame
+            // Premium Slate Card Frame
             let cardBg = this.add.graphics();
-            drawThaiFrame(cardBg, cx - 120, cy - 70, 240, 140, 12);
-            
+            // Drop shadow
+            cardBg.fillStyle(0x000000, 0.15);
+            cardBg.fillRoundedRect(cx - 118, cy - 66, 240, 140, 12);
+            // Gold border
+            cardBg.fillStyle(0xd97706, 1);
+            cardBg.fillRoundedRect(cx - 120, cy - 70, 240, 140, 12);
+
             let cardInner = this.add.graphics();
-            cardInner.fillStyle(0x3a1007, 1);
-            cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
+            cardInner.fillStyle(0x1e293b, 1);
+            cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
             
             // Big Number 
             let numTxt = this.add.text(cx, cy - 15, st.num, {
-                fontFamily: '"PixelGame", "Courier New", Courier, Kanit',
+                fontFamily: 'Kanit, sans-serif',
+                fontWeight: 'bold',
                 fontSize: '80px',
-                color: '#a08070'
+                color: '#ffffff'
             }).setOrigin(0.5);
             
             // Name Text
             let title = this.add.text(cx, cy + 40, st.name, {
-                fontFamily: '"PixelGame", Kanit',
-                fontSize: '26px',
-                color: '#ffffff'
+                fontFamily: 'Kanit, sans-serif',
+                fontWeight: 'bold',
+                fontSize: '24px',
+                color: '#e2e8f0'
             }).setOrigin(0.5);
 
             // Interaction Zone
@@ -1663,20 +1664,20 @@ class CategoryMenu extends Phaser.Scene {
             
             zone.on('pointerover', () => {
                 cardInner.clear();
-                cardInner.fillStyle(0x7a0c08, 1); // glowing crimson on hover
-                cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
-                title.setColor('#ffd700'); // Gold text on hover
-                numTxt.setColor('#ffffff');
-                this.tweens.add({ targets: numTxt, y: cy - 25, duration: 100 });
+                cardInner.fillStyle(0x334155, 1); // lighter slate on hover
+                cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                title.setColor('#fbbf24'); // gold text
+                numTxt.setColor('#fbbf24');
+                this.tweens.add({ targets: [numTxt, title], scale: 1.04, duration: 100 });
             });
             
             zone.on('pointerout', () => {
                 cardInner.clear();
-                cardInner.fillStyle(0x3a1007, 1);
-                cardInner.fillRoundedRect(cx - 114, cy - 64, 228, 128, 10);
-                title.setColor('#ffffff');
-                numTxt.setColor('#a08070');
-                this.tweens.add({ targets: numTxt, y: cy - 15, duration: 100 });
+                cardInner.fillStyle(0x1e293b, 1);
+                cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                title.setColor('#e2e8f0');
+                numTxt.setColor('#ffffff');
+                this.tweens.add({ targets: [numTxt, title], scale: 1.0, duration: 100 });
             });
             
             zone.on('pointerdown', () => {
