@@ -40,7 +40,7 @@ class MainMenu extends Phaser.Scene {
         // Bouncing/Breathing Title
         let titleBlock = this.add.container(500, 150);
         
-        let titleText = this.add.text(0, 0, 'LEARN ENGLISH', {
+        let titleText = this.add.text(0, 0, 'WORD RUSH', {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '72px',
             fontWeight: 'bold',
@@ -1628,7 +1628,7 @@ class CategoryMenu extends Phaser.Scene {
         overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
         overlay.fillRect(0, 0, 1000, 600);
 
-        this.add.text(500, 70, 'LEARN ENGLISH - เลือกด่าน', {
+        this.add.text(500, 70, 'WORD RUSH - เลือกด่าน', {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '54px',
             fontWeight: 'bold',
