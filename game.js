@@ -730,6 +730,21 @@ class GamePlay extends Phaser.Scene {
         this.gameState.btn3 = createChoiceButton(this, 620, 560, 'C', () => this.checkAnswer(3), bw, bh, bf);
         this.gameState.btn4 = createChoiceButton(this, 860, 560, 'D', () => this.checkAnswer(4), bw, bh, bf);
 
+        // Setup Keyboard Shortcuts A, B, C, D
+        this.input.keyboard.on('keydown', (event) => {
+            if (this.gameState.isAnimating || this.gameState.isGameOver) return;
+            const key = event.key.toLowerCase();
+            if (key === 'a') {
+                if (this.gameState.btn1 && this.gameState.btn1.press) this.gameState.btn1.press();
+            } else if (key === 'b') {
+                if (this.gameState.btn2 && this.gameState.btn2.press) this.gameState.btn2.press();
+            } else if (key === 'c') {
+                if (this.gameState.btn3 && this.gameState.btn3.press) this.gameState.btn3.press();
+            } else if (key === 'd') {
+                if (this.gameState.btn4 && this.gameState.btn4.press) this.gameState.btn4.press();
+            }
+        });
+
         this.nextQuiz();
     }
 
@@ -1599,7 +1614,7 @@ function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSiz
         });
     });
 
-    hitZone.on('pointerdown', () => {
+    let triggerPress = () => {
         // Press feedback
         body.clear();
         body.fillStyle(0x0f172a, 1); // Darkest slate
@@ -1612,11 +1627,15 @@ function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSiz
             container.y -= 2; 
         }, 80);
         onClick();
+    };
+
+    hitZone.on('pointerdown', () => {
+        triggerPress();
     });
     
     container.add(hitZone);
 
-    return { container, text: btnText };
+    return { container, text: btnText, press: triggerPress };
 }
 
 class SettingsMenu extends Phaser.Scene {
