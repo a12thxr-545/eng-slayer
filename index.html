@@ -13,81 +13,32 @@
             src: url('assets/fonts/Pixel%20Game.otf') format('opentype');
         }
 
-        body {
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
             font-family: 'PixelGame', 'Kanit', sans-serif;
             overflow: hidden;
             touch-action: none; /* Prevents default zooming/scrolling on mobile */
         }
 
         #gameContainer { 
-            position: relative;
-            width: 95vw;
-            max-width: 1000px;
-            height: calc(95vw * 0.6);
-            max-height: 600px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.6);
-            border: 2px solid #334155;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        @media (min-aspect-ratio: 1000/600) {
-            #gameContainer {
-                height: 95vh;
-                max-height: 600px;
-                width: calc(95vh * 1.6667);
-                max-width: 1000px;
-            }
-        }
-
-        /* Portrait orientation warning overlay */
-        #orientationWarning {
-            display: none;
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #111;
-            z-index: 9999;
-            color: #fff;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        @keyframes rotateDevice {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(-90deg); }
-            100% { transform: rotate(-90deg); }
-        }
-
-        @media (max-aspect-ratio: 1/1) {
-            #orientationWarning {
-                display: flex;
-            }
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <div id="orientationWarning">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: rotateDevice 2s infinite alternate; margin-bottom: 20px;">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-            <line x1="12" y1="18" x2="12.01" y2="18" />
-        </svg>
-        <div style="font-family: 'Kanit', sans-serif; font-weight: bold; font-size: 24px;">กรุณาหมุนโทรศัพท์เป็นแนวนอน</div>
-        <div style="font-family: 'Kanit', sans-serif; font-size: 16px; margin-top: 10px; color: #aaa;">เพื่อประสบการณ์การเล่นเกมที่ดีที่สุด</div>
-    </div>
-
     <div id="gameContainer"></div>
     <script>
         let script = document.createElement('script');

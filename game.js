@@ -77,6 +77,46 @@ class MainMenu extends Phaser.Scene {
     }
 }
 
+const ENEMY_TYPES_DATA = {
+    'ghost-girl': {
+        walkCount: 10,
+        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/ghost-girl/ghost-girl-walk/ghost-girl-walk${i + 1}.png`),
+        chargeCount: 6,
+        chargeFiles: Array.from({length: 6}, (_, i) => `assets/enemy/ghost-girl/ghost-girl-charge/ghost-girl-charge${i + 1}.png`),
+        attackCount: 2,
+        attackFiles: [
+            'assets/enemy/ghost-girl/ghost-girl-attack/ghost-girl-attack1.png',
+            'assets/enemy/ghost-girl/ghost-girl-attack/ghost-girl-attack2.png'
+        ],
+        scale: 0.85
+    },
+    'ghost-water': {
+        walkCount: 10,
+        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/ghost-water/ghost-water-walk/ghost-water-walk${i + 1}.png`),
+        chargeCount: 3,
+        chargeFiles: Array.from({length: 3}, (_, i) => `assets/enemy/ghost-water/ghost-water-charge/ghost-water-charge${i + 1}.png`),
+        attackCount: 3,
+        attackFiles: [
+            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack1.png',
+            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack2.png',
+            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack3.png'
+        ],
+        scale: 0.85
+    },
+    'skeleton': {
+        walkCount: 10,
+        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/skeleton/skeleton-walk/skeleton-walk${i + 1}.png`),
+        chargeCount: 2,
+        chargeFiles: Array.from({length: 2}, (_, i) => `assets/enemy/skeleton/skeleton-charge/skeleton-charge${i + 1}.png`),
+        attackCount: 2,
+        attackFiles: [
+            'assets/enemy/skeleton/skeleton-attack/skeleton-attack1.png',
+            'assets/enemy/skeleton/skeleton-attack/skeleton-attack2.png'
+        ],
+        scale: 0.85
+    }
+};
+
 class GamePlay extends Phaser.Scene {
     constructor() {
         super({ key: 'GamePlay' });
@@ -276,7 +316,7 @@ class GamePlay extends Phaser.Scene {
 
         // Load Main Character frames
         this.load.image('player_idle', 'assets/main-character/idle/idle1.png');
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 1; i <= 10; i++) {
             this.load.image('player_idle_' + i, 'assets/main-character/idle/idle' + i + '.png');
         }
         for (let i = 1; i <= 8; i++) {
@@ -296,11 +336,25 @@ class GamePlay extends Phaser.Scene {
             this.load.image('player_dead_' + i, 'assets/main-character/main-dead/dead' + i + '.png');
         }
 
-        // Load Ghost Enemy frames (ghost1.png to ghost20.png)
+        // Load Ghost Enemy frames (ghost1.png to ghost10.png)
         this.load.image('enemy_ghost', 'assets/enemy/ghost/ghost1.png');
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 10; i++) {
             this.load.image('ghost_fly_' + i, 'assets/enemy/ghost/ghost' + i + '.png');
         }
+
+        // Load Enemy frames (ghost-girl, ghost-water, skeleton: walk, charge, attack)
+        Object.keys(ENEMY_TYPES_DATA).forEach(typeKey => {
+            const data = ENEMY_TYPES_DATA[typeKey];
+            data.walkFiles.forEach((file, idx) => {
+                this.load.image(`${typeKey}_walk_${idx + 1}`, file);
+            });
+            data.chargeFiles.forEach((file, idx) => {
+                this.load.image(`${typeKey}_charge_${idx + 1}`, file);
+            });
+            data.attackFiles.forEach((file, idx) => {
+                this.load.image(`${typeKey}_attack_${idx + 1}`, file);
+            });
+        });
 
 
         // Load Spells and Explosions
@@ -565,7 +619,7 @@ class GamePlay extends Phaser.Scene {
         if (!this.anims.exists('player_idle_anim')) {
             this.anims.create({
                 key: 'player_idle_anim',
-                frames: Array.from({length: 12}, (_, i) => ({ key: 'player_idle_' + (i + 1) })),
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'player_idle_' + (i + 1) })),
                 frameRate: 10,
                 repeat: -1
             });
@@ -599,11 +653,36 @@ class GamePlay extends Phaser.Scene {
         if (!this.anims.exists('ghost_fly_anim')) {
             this.anims.create({
                 key: 'ghost_fly_anim',
-                frames: Array.from({length: 20}, (_, i) => ({ key: 'ghost_fly_' + (i + 1) })),
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'ghost_fly_' + (i + 1) })),
                 frameRate: 14,
                 repeat: -1
             });
         }
+
+        // Define keyframe animations for Enemy types (ghost-girl, ghost-water, skeleton)
+        Object.keys(ENEMY_TYPES_DATA).forEach(typeKey => {
+            const data = ENEMY_TYPES_DATA[typeKey];
+
+            const walkAnimKey = `${typeKey}_walk_anim`;
+            if (!this.anims.exists(walkAnimKey)) {
+                this.anims.create({
+                    key: walkAnimKey,
+                    frames: Array.from({length: data.walkCount}, (_, i) => ({ key: `${typeKey}_walk_${i + 1}` })),
+                    frameRate: 14,
+                    repeat: -1
+                });
+            }
+
+            const chargeAnimKey = `${typeKey}_charge_anim`;
+            if (!this.anims.exists(chargeAnimKey)) {
+                this.anims.create({
+                    key: chargeAnimKey,
+                    frames: Array.from({length: data.chargeCount}, (_, i) => ({ key: `${typeKey}_charge_${i + 1}` })),
+                    frameRate: 10,
+                    repeat: 0
+                });
+            }
+        });
 
         // Play initial idle animation on Hanuman
         if (this.gameState.player) {
@@ -863,14 +942,30 @@ class GamePlay extends Phaser.Scene {
             this.gameState.zombie.destroy();
         }
         
-        // Spawn Enemy (Ghost Enemy)
-        let mKey = 'enemy_ghost';
-        let spawnY = 370;
-        let baseScale = this.gameState.isBossFight ? 1.4 : 0.95;
+        // Spawn Enemy (Random pick: ghost-girl, ghost-water, skeleton; except boss)
+        if (this.gameState.isBossFight) {
+            this.gameState.currentEnemyType = 'boss';
+        } else {
+            const enemyKeys = Object.keys(ENEMY_TYPES_DATA);
+            this.gameState.currentEnemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+        }
 
-        this.gameState.zombie = this.add.sprite(950, spawnY, mKey).setOrigin(0.5, 0.5).setDepth(2);
-        this.gameState.zombie.setScale(baseScale);
-        this.gameState.zombie.play('ghost_fly_anim');
+        let enemyType = this.gameState.currentEnemyType;
+        let spawnY = 370;
+
+        if (enemyType === 'boss') {
+            let mKey = 'enemy_ghost';
+            let baseScale = 1.4;
+            this.gameState.zombie = this.add.sprite(950, spawnY, mKey).setOrigin(0.5, 0.5).setDepth(2);
+            this.gameState.zombie.setScale(baseScale);
+            this.gameState.zombie.play('ghost_fly_anim');
+        } else {
+            const config = ENEMY_TYPES_DATA[enemyType];
+            let baseScale = config.scale || 0.85;
+            this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, 0.5).setDepth(2);
+            this.gameState.zombie.setScale(baseScale);
+            this.gameState.zombie.play(`${enemyType}_walk_anim`);
+        }
 
         // Reset player to idle position at far left
         if (this.gameState.player && !this.gameState.isAnimating) {
@@ -891,16 +986,8 @@ class GamePlay extends Phaser.Scene {
             frequency: 60
         }).setDepth(1);
 
-        // Hover sine wave animation while floating forward
-        this.gameState.zombieFloatTween = this.tweens.add({
-            targets: this.gameState.zombie,
-            y: spawnY - 25,
-            angle: 6,
-            duration: 1000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
+        // Enemy walks straight in a line (no floating up and down)
+        this.gameState.zombieFloatTween = null;
 
         // Boss HP Bar visual above head
         if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true);
@@ -940,33 +1027,12 @@ class GamePlay extends Phaser.Scene {
                 if (!this.gameState.isAnimating && !this.gameState.isGameOver) {
                     this.gameState.isAnimating = true;
 
-                    // Ghost lunges forward to attack player
-                    if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
-
-                    this.tweens.add({
-                        targets: this.gameState.zombie,
-                        x: 170,
-                        angle: -15,
-                        duration: 200,
-                        ease: 'Cubic.easeOut',
-                        onComplete: () => {
-                            if (this.gameState.isBossFight) {
-                                this.gameState.hp--;
-                                this.updateHpBar();
-                            }
-                            this.playerTakeDamage();
-
-                            this.tweens.add({
-                                targets: this.gameState.zombie,
-                                x: 280,
-                                angle: 0,
-                                duration: 250,
-                                ease: 'Quad.easeIn',
-                                onComplete: () => {
-                                    if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
-                                }
-                            });
+                    this.performEnemyAttack(() => {
+                        if (this.gameState.isBossFight) {
+                            this.gameState.hp--;
+                            this.updateHpBar();
                         }
+                        this.playerTakeDamage();
                     });
                 }
             }
@@ -1003,21 +1069,18 @@ class GamePlay extends Phaser.Scene {
             }
         }
 
-        // Defeated
-        if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); 
-
-        // Defeated - Ghost floats UP into the sky and fades out
+        // Defeated - enemy fades out directly without floating up
         if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); 
 
         if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
+        if (this.gameState.zombieTrail) {
+            this.gameState.zombieTrail.destroy();
+            this.gameState.zombieTrail = null;
+        }
         this.tweens.add({
             targets: this.gameState.zombie,
             alpha: 0,
-            y: this.gameState.zombie.y - 220,
-            scaleX: this.gameState.zombie.scaleX * 1.25,
-            scaleY: this.gameState.zombie.scaleY * 1.25,
-            angle: -25,
-            duration: 850, 
+            duration: 350, 
             ease: 'Quad.easeOut',
             onComplete: () => {
                 if (this.gameState.isBossFight) {
@@ -1117,32 +1180,101 @@ class GamePlay extends Phaser.Scene {
             // Wrong answer
             if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
 
-            let performLunge = () => {
-                let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
-                this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
-
-                // Ghost lunges forward to collide/attack player
-                this.tweens.add({
-                    targets: this.gameState.zombie,
-                    x: this.gameState.player.x + 50,
-                    y: 390,
-                    angle: -20,
-                    duration: 180,
-                    yoyo: true,
-                    repeat: 0,
-                    onComplete: () => {
-                        this.gameState.zombie.setAngle(0);
-                        if (this.gameState.isBossFight) {
-                            this.gameState.hp--;
-                            this.updateHpBar();
-                        }
-                        this.playerTakeDamage();
-                    }
-                });
-            };
-
-            performLunge();
+            this.performEnemyAttack(() => {
+                if (this.gameState.isBossFight) {
+                    this.gameState.hp--;
+                    this.updateHpBar();
+                }
+                this.playerTakeDamage();
+            });
         }
+    }
+
+    performEnemyAttack(onAttackHit) {
+        if (!this.gameState.zombie || this.gameState.isGameOver) return;
+
+        let enemyType = this.gameState.currentEnemyType || 'ghost-girl';
+
+        if (enemyType === 'boss') {
+            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
+            this.tweens.add({
+                targets: this.gameState.zombie,
+                x: 170,
+                angle: -15,
+                duration: 200,
+                ease: 'Cubic.easeOut',
+                onComplete: () => {
+                    if (onAttackHit) onAttackHit();
+                    this.tweens.add({
+                        targets: this.gameState.zombie,
+                        x: 280,
+                        angle: 0,
+                        duration: 250,
+                        ease: 'Quad.easeIn',
+                        onComplete: () => {
+                            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
+                        }
+                    });
+                }
+            });
+            return;
+        }
+
+        const config = ENEMY_TYPES_DATA[enemyType];
+        if (!config) return;
+
+        if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
+
+        // 1. Play Charge animation
+        this.gameState.zombie.play(`${enemyType}_charge_anim`);
+
+        this.gameState.zombie.once(`animationcomplete-${enemyType}_charge_anim`, () => {
+            if (!this.gameState.zombie || this.gameState.isGameOver) return;
+
+            // 2. Randomly pick an attack pose / frame
+            let randAttackIdx = Math.floor(Math.random() * config.attackCount) + 1;
+            let attackKey = `${enemyType}_attack_${randAttackIdx}`;
+
+            this.gameState.zombie.anims.stop();
+            this.gameState.zombie.setTexture(attackKey);
+
+            // Fail red flash screen
+            let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
+            this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
+
+            // 3. Lunge forward to hit player
+            let startX = this.gameState.zombie.x;
+            this.tweens.add({
+                targets: this.gameState.zombie,
+                x: this.gameState.player.x + 50,
+                y: 390,
+                angle: -15,
+                duration: 180,
+                ease: 'Cubic.easeOut',
+                onComplete: () => {
+                    if (this.gameState.zombie) this.gameState.zombie.setAngle(0);
+
+                    if (onAttackHit) onAttackHit();
+
+                    // 4. Retreat back after hitting player
+                    if (this.gameState.zombie && !this.gameState.isGameOver) {
+                        this.tweens.add({
+                            targets: this.gameState.zombie,
+                            x: Math.max(startX, 280),
+                            y: 370,
+                            duration: 250,
+                            ease: 'Quad.easeIn',
+                            onComplete: () => {
+                                if (this.gameState.zombie && !this.gameState.isGameOver) {
+                                    this.gameState.zombie.play(`${enemyType}_walk_anim`);
+                                    if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        });
     }
 
     playTridentTyphoon() {
