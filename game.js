@@ -81,48 +81,44 @@ class MainMenu extends Phaser.Scene {
 }
 
 const ENEMY_TYPES_DATA = {
-    'ghost-girl': {
-        walkCount: 10,
-        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/ghost-girl/ghost-girl-walk/ghost-girl-walk${i + 1}.png`),
-        chargeCount: 6,
-        chargeFiles: Array.from({length: 6}, (_, i) => `assets/enemy/ghost-girl/ghost-girl-charge/ghost-girl-charge${i + 1}.png`),
-        attackCount: 2,
-        attackFiles: [
-            'assets/enemy/ghost-girl/ghost-girl-attack/ghost-girl-attack1.png',
-            'assets/enemy/ghost-girl/ghost-girl-attack/ghost-girl-attack2.png'
-        ],
+    'dog': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/dog/dog-walk/dog-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/dog/dog-attack/dog-attack${i + 1}.png`),
         scale: 0.85
     },
-    'ghost-water': {
-        walkCount: 10,
-        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/ghost-water/ghost-water-walk/ghost-water-walk${i + 1}.png`),
-        chargeCount: 3,
-        chargeFiles: Array.from({length: 3}, (_, i) => `assets/enemy/ghost-water/ghost-water-charge/ghost-water-charge${i + 1}.png`),
-        attackCount: 3,
-        attackFiles: [
-            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack1.png',
-            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack2.png',
-            'assets/enemy/ghost-water/ghost-water-attack/ghost-water-attack3.png'
-        ],
+    'duck': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/duck/duck-walk/duck-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/duck/duck-attack/duck-attack${i + 1}.png`),
         scale: 0.85
     },
-    'skeleton': {
-        walkCount: 10,
-        walkFiles: Array.from({length: 10}, (_, i) => `assets/enemy/skeleton/skeleton-walk/skeleton-walk${i + 1}.png`),
-        chargeCount: 2,
-        chargeFiles: Array.from({length: 2}, (_, i) => `assets/enemy/skeleton/skeleton-charge/skeleton-charge${i + 1}.png`),
-        attackCount: 2,
-        attackFiles: [
-            'assets/enemy/skeleton/skeleton-attack/skeleton-attack1.png',
-            'assets/enemy/skeleton/skeleton-attack/skeleton-attack2.png'
-        ],
+    'lion': {
+        walkCount: 19,
+        walkFiles: Array.from({length: 19}, (_, i) => `assets/enemy/stage1/lion/lion-walk/lion-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/lion/lion-attack/lion-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'elephant': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/elephant/elephant-walk/elephant-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/elephant/elephant-attack/elephant-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'pig': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/pig/pig-walk/pig-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/pig/pig-attack/pig-attack${i + 1}.png`),
         scale: 0.85
     },
     'boss': {
         walkCount: 15,
         walkFiles: Array.from({length: 15}, (_, i) => `assets/enemy/boss/boss-run/boss-run${i + 1}.png`),
-        chargeCount: 3,
-        chargeFiles: Array.from({length: 3}, (_, i) => `assets/enemy/boss/boss-charge/boss-charge${i + 1}.png`),
         attackCount: 2,
         attackFiles: [
             'assets/enemy/boss/boss-attack/boss-attack1.png',
@@ -358,12 +354,11 @@ class GamePlay extends Phaser.Scene {
             data.walkFiles.forEach((file, idx) => {
                 this.load.image(`${typeKey}_walk_${idx + 1}`, file);
             });
-            data.chargeFiles.forEach((file, idx) => {
-                this.load.image(`${typeKey}_charge_${idx + 1}`, file);
-            });
-            data.attackFiles.forEach((file, idx) => {
-                this.load.image(`${typeKey}_attack_${idx + 1}`, file);
-            });
+            if (data.attackFiles) {
+                data.attackFiles.forEach((file, idx) => {
+                    this.load.image(`${typeKey}_attack_${idx + 1}`, file);
+                });
+            }
         });
 
         // Load Boss hurt frames
@@ -678,7 +673,7 @@ class GamePlay extends Phaser.Scene {
         }
 
 
-        // Define keyframe animations for Enemy types (ghost-girl, ghost-water, skeleton)
+        // Define keyframe animations for Enemy types (dog, duck, lion, elephant, pig, boss)
         Object.keys(ENEMY_TYPES_DATA).forEach(typeKey => {
             const data = ENEMY_TYPES_DATA[typeKey];
 
@@ -692,14 +687,17 @@ class GamePlay extends Phaser.Scene {
                 });
             }
 
-            const chargeAnimKey = `${typeKey}_charge_anim`;
-            if (!this.anims.exists(chargeAnimKey)) {
-                this.anims.create({
-                    key: chargeAnimKey,
-                    frames: Array.from({length: data.chargeCount}, (_, i) => ({ key: `${typeKey}_charge_${i + 1}` })),
-                    frameRate: 10,
-                    repeat: 0
-                });
+            // Attack animation for non-boss enemies (plays all attack frames in sequence)
+            if (typeKey !== 'boss') {
+                const attackAnimKey = `${typeKey}_attack_anim`;
+                if (!this.anims.exists(attackAnimKey)) {
+                    this.anims.create({
+                        key: attackAnimKey,
+                        frames: Array.from({length: data.attackCount}, (_, i) => ({ key: `${typeKey}_attack_${i + 1}` })),
+                        frameRate: 10,
+                        repeat: 0
+                    });
+                }
             }
         });
 
@@ -1013,11 +1011,11 @@ class GamePlay extends Phaser.Scene {
         }
 
         let enemyType = this.gameState.currentEnemyType;
-        let spawnY = (enemyType === 'boss') ? 310 : 370;
+        let spawnY = (enemyType === 'boss') ? 310 : 425;
 
         const config = ENEMY_TYPES_DATA[enemyType];
-        let baseScale = config.scale || 0.85;
-        this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, 0.5).setDepth(2);
+        let baseScale = (enemyType === 'boss') ? (config.scale || 1.0) : 0.9;
+        this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, (enemyType === 'boss') ? 0.5 : 1).setDepth(2);
         this.gameState.zombie.setScale(baseScale);
         this.gameState.zombie.setFlipX(false);
         this.gameState.zombie.play(`${enemyType}_walk_anim`);
@@ -1325,59 +1323,65 @@ class GamePlay extends Phaser.Scene {
 
         if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
 
-        // 1. Play Charge animation
-        this.gameState.zombie.play(`${enemyType}_charge_anim`);
-
-        this.gameState.zombie.once(`animationcomplete-${enemyType}_charge_anim`, () => {
-            if (!this.gameState.zombie || this.gameState.isGameOver) return;
-
-            // 2. Randomly pick an attack pose / frame
+        if (enemyType === 'boss') {
+            // Boss: show random attack frame (static) then lunge
             let randAttackIdx = Math.floor(Math.random() * config.attackCount) + 1;
-            let attackKey = `${enemyType}_attack_${randAttackIdx}`;
-
             this.gameState.zombie.anims.stop();
-            this.gameState.zombie.setTexture(attackKey);
-
-            // Fail red flash screen
-            let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
-            this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
-
-            let targetY = (enemyType === 'boss') ? 330 : 390;
-            let retreatY = (enemyType === 'boss') ? 310 : 370;
-
-            // 3. Lunge forward to hit player
-            let startX = this.gameState.zombie.x;
-            this.tweens.add({
-                targets: this.gameState.zombie,
-                x: this.gameState.player.x + 50,
-                y: targetY,
-                angle: -15,
-                duration: 180,
-                ease: 'Cubic.easeOut',
-                onComplete: () => {
-                    if (this.gameState.zombie) this.gameState.zombie.setAngle(0);
-
-                    if (onAttackHit) onAttackHit();
-
-                    // 4. Retreat back after hitting player
-                    if (this.gameState.zombie && !this.gameState.isGameOver) {
-                        this.tweens.add({
-                            targets: this.gameState.zombie,
-                            x: Math.max(startX, 280),
-                            y: retreatY,
-                            duration: 250,
-                            ease: 'Quad.easeIn',
-                            onComplete: () => {
-                                if (this.gameState.zombie && !this.gameState.isGameOver) {
-                                    this.gameState.zombie.play(`${enemyType}_walk_anim`);
-                                    if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
-                                }
-                            }
-                        });
-                    }
-                }
+            this.gameState.zombie.setTexture(`${enemyType}_attack_${randAttackIdx}`);
+            this._doEnemyLunge(enemyType, onAttackHit);
+        } else {
+            // Normal enemy: play full attack animation then lunge
+            this.gameState.zombie.play(`${enemyType}_attack_anim`);
+            this.gameState.zombie.once(`animationcomplete-${enemyType}_attack_anim`, () => {
+                if (!this.gameState.zombie || this.gameState.isGameOver) return;
+                this._doEnemyLunge(enemyType, onAttackHit);
             });
+        }
+    }
+
+    _doEnemyLunge(enemyType, onAttackHit) {
+        if (!this.gameState.zombie || this.gameState.isGameOver) return;
+
+        // Fail red flash screen
+        let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
+        this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
+
+        let targetY = (enemyType === 'boss') ? 330 : 425;
+        let retreatY = (enemyType === 'boss') ? 310 : 425;
+
+        // Lunge forward to hit player
+        let startX = this.gameState.zombie.x;
+        this.tweens.add({
+            targets: this.gameState.zombie,
+            x: this.gameState.player.x + 50,
+            y: targetY,
+            angle: -15,
+            duration: 180,
+            ease: 'Cubic.easeOut',
+            onComplete: () => {
+                if (this.gameState.zombie) this.gameState.zombie.setAngle(0);
+
+                if (onAttackHit) onAttackHit();
+
+                // Retreat back after hitting player
+                if (this.gameState.zombie && !this.gameState.isGameOver) {
+                    this.tweens.add({
+                        targets: this.gameState.zombie,
+                        x: Math.max(startX, 280),
+                        y: retreatY,
+                        duration: 250,
+                        ease: 'Quad.easeIn',
+                        onComplete: () => {
+                            if (this.gameState.zombie && !this.gameState.isGameOver) {
+                                this.gameState.zombie.play(`${enemyType}_walk_anim`);
+                                if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
+                            }
+                        }
+                    });
+                }
+            }
         });
+
     }
 
     playTridentTyphoon() {
