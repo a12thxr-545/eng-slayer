@@ -27,6 +27,9 @@ class MainMenu extends Phaser.Scene {
     }
 
     create() {
+        // Unlock all stages for testing
+        localStorage.setItem('unlockedStageIdx', 5);
+
         let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         
         let overlay = this.add.graphics();
@@ -114,6 +117,18 @@ const ENEMY_TYPES_DATA = {
             'assets/enemy/skeleton/skeleton-attack/skeleton-attack2.png'
         ],
         scale: 0.85
+    },
+    'boss': {
+        walkCount: 15,
+        walkFiles: Array.from({length: 15}, (_, i) => `assets/enemy/boss/boss-run/boss-run${i + 1}.png`),
+        chargeCount: 3,
+        chargeFiles: Array.from({length: 3}, (_, i) => `assets/enemy/boss/boss-charge/boss-charge${i + 1}.png`),
+        attackCount: 2,
+        attackFiles: [
+            'assets/enemy/boss/boss-attack/boss-attack1.png',
+            'assets/enemy/boss/boss-attack/boss-attack2.png'
+        ],
+        scale: 1.0
     }
 };
 
@@ -336,11 +351,6 @@ class GamePlay extends Phaser.Scene {
             this.load.image('player_dead_' + i, 'assets/main-character/main-dead/dead' + i + '.png');
         }
 
-        // Load Ghost Enemy frames (ghost1.png to ghost10.png)
-        this.load.image('enemy_ghost', 'assets/enemy/ghost/ghost1.png');
-        for (let i = 1; i <= 10; i++) {
-            this.load.image('ghost_fly_' + i, 'assets/enemy/ghost/ghost' + i + '.png');
-        }
 
         // Load Enemy frames (ghost-girl, ghost-water, skeleton: walk, charge, attack)
         Object.keys(ENEMY_TYPES_DATA).forEach(typeKey => {
@@ -356,13 +366,18 @@ class GamePlay extends Phaser.Scene {
             });
         });
 
+        // Load Boss hurt frames
+        for (let i = 1; i <= 15; i++) {
+            this.load.image(`boss_hurt_${i}`, `assets/enemy/boss/boss-hurt/boss-hurt${i}.png`);
+        }
+
+        // Load Boss dead frames
+        for (let i = 1; i <= 7; i++) {
+            this.load.image(`boss_dead_${i}`, `assets/enemy/boss/boss-dead/boss-dead${i}.png`);
+        }
+
 
         // Load Spells and Explosions
-        for (let i = 1; i <= 8; i++) {
-            let pI = i < 10 ? '0' + i : i;
-            this.load.image('ef_fireball' + i, 'assets/ef2/Fire Ball/PNG/Fire Ball_Frame_' + pI + '.png');
-            this.load.image('ef_firearrow' + i, 'assets/ef2/Fire Arrow/PNG/Fire Arrow_Frame_' + pI + '.png');
-        }
         for (let i = 1; i <= 10; i++) {
             this.load.image('ef3_exp' + i, 'assets/ef3/PNG/Explosion/Explosion' + i + '.png');
         }
@@ -450,6 +465,19 @@ class GamePlay extends Phaser.Scene {
     }
 
     create() {
+        // Create a dynamic radial glow texture for particles
+        if (!this.textures.exists('particle_glow')) {
+            let canvas = this.textures.createCanvas('particle_glow', 32, 32);
+            let ctx = canvas.context;
+            let gradient = ctx.createRadialGradient(16, 16, 2, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            canvas.refresh();
+        }
+
         let safeBgIdx = this.gameState.currentStageIdx % 6;
         this.gameState.bg = this.add.image(500, 300, 'lvl_bg' + safeBgIdx).setDisplaySize(1000, 600);
 
@@ -523,9 +551,9 @@ class GamePlay extends Phaser.Scene {
         this.gameState.player = this.add.sprite(130, 425, 'player_idle').setOrigin(0.5, 1).setDepth(2);
         this.gameState.player.setScale(0.6);
 
-        // Gold Aura Foot Particles
-        this.gameState.auraParticles = this.add.particles(130, 420, 'ef_fireball1', {
-            scale: { start: 0.06, end: 0 },
+        // Gold Aura Foot Particles (Using dynamic glow texture)
+        this.gameState.auraParticles = this.add.particles(130, 420, 'particle_glow', {
+            scale: { start: 0.2, end: 0 },
             speedY: { min: -120, max: -40 },
             speedX: { min: -25, max: 25 },
             lifespan: 800,
@@ -587,8 +615,8 @@ class GamePlay extends Phaser.Scene {
                             onComplete: () => ring.destroy()
                         });
 
-                        let burst = this.add.particles(this.gameState.player.x, this.gameState.player.y - 20, 'ef_fireball1', {
-                            scale: { start: 0.12, end: 0 },
+                        let burst = this.add.particles(this.gameState.player.x, this.gameState.player.y - 20, 'particle_glow', {
+                            scale: { start: 0.3, end: 0 },
                             speed: { min: 80, max: 200 },
                             lifespan: 400,
                             alpha: { start: 0.8, end: 0 },
@@ -649,15 +677,6 @@ class GamePlay extends Phaser.Scene {
             });
         }
 
-        // Define keyframe animation for Ghost Enemy
-        if (!this.anims.exists('ghost_fly_anim')) {
-            this.anims.create({
-                key: 'ghost_fly_anim',
-                frames: Array.from({length: 10}, (_, i) => ({ key: 'ghost_fly_' + (i + 1) })),
-                frameRate: 14,
-                repeat: -1
-            });
-        }
 
         // Define keyframe animations for Enemy types (ghost-girl, ghost-water, skeleton)
         Object.keys(ENEMY_TYPES_DATA).forEach(typeKey => {
@@ -684,6 +703,34 @@ class GamePlay extends Phaser.Scene {
             }
         });
 
+        // Define Boss hurt animation
+        if (!this.anims.exists('boss_hurt_anim')) {
+            this.anims.create({
+                key: 'boss_hurt_anim',
+                frames: Array.from({length: 15}, (_, i) => ({ key: `boss_hurt_${i + 1}` })),
+                frameRate: 15,
+                repeat: 0
+            });
+        }
+        if (!this.anims.exists('boss_hurt_run_anim')) {
+            this.anims.create({
+                key: 'boss_hurt_run_anim',
+                frames: Array.from({length: 15}, (_, i) => ({ key: `boss_hurt_${i + 1}` })),
+                frameRate: 15,
+                repeat: -1
+            });
+        }
+
+        // Define Boss dead animation
+        if (!this.anims.exists('boss_dead_anim')) {
+            this.anims.create({
+                key: 'boss_dead_anim',
+                frames: Array.from({length: 7}, (_, i) => ({ key: `boss_dead_${i + 1}` })),
+                frameRate: 8,
+                repeat: 0
+            });
+        }
+
         // Play initial idle animation on Hanuman
         if (this.gameState.player) {
             this.gameState.player.play('player_idle_anim');
@@ -692,14 +739,6 @@ class GamePlay extends Phaser.Scene {
         // Yaksa uses native animations, so no flipbook timer is needed.
 
         // Setup Spell/Explosion Animations if they don't exist yet
-        if (!this.anims.exists('ef2_fireball_anim')) {
-            this.anims.create({
-                key: 'ef2_fireball_anim',
-                frames: Array.from({length: 8}, (_, i) => ({ key: 'ef_fireball' + (i + 1) })),
-                frameRate: 10,
-                repeat: -1
-            });
-        }
         if (!this.anims.exists('ef3_exp_anim')) {
             this.anims.create({
                 key: 'ef3_exp_anim',
@@ -822,6 +861,14 @@ class GamePlay extends Phaser.Scene {
             this.gameState.isAnimating = true; 
             this.gameState.isBossFight = false;
             this.gameState.scoreInStage = 0;
+
+            // Unlock next stage!
+            let nextStageIdx = this.gameState.currentStageIdx + 1;
+            let currentUnlocked = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
+            if (nextStageIdx > currentUnlocked) {
+                localStorage.setItem('unlockedStageIdx', nextStageIdx);
+            }
+
             this.gameState.currentStageIdx++;
             
             if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
@@ -961,26 +1008,19 @@ class GamePlay extends Phaser.Scene {
         if (this.gameState.isBossFight) {
             this.gameState.currentEnemyType = 'boss';
         } else {
-            const enemyKeys = Object.keys(ENEMY_TYPES_DATA);
+            const enemyKeys = Object.keys(ENEMY_TYPES_DATA).filter(key => key !== 'boss');
             this.gameState.currentEnemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
         }
 
         let enemyType = this.gameState.currentEnemyType;
-        let spawnY = 370;
+        let spawnY = (enemyType === 'boss') ? 310 : 370;
 
-        if (enemyType === 'boss') {
-            let mKey = 'enemy_ghost';
-            let baseScale = 1.4;
-            this.gameState.zombie = this.add.sprite(950, spawnY, mKey).setOrigin(0.5, 0.5).setDepth(2);
-            this.gameState.zombie.setScale(baseScale);
-            this.gameState.zombie.play('ghost_fly_anim');
-        } else {
-            const config = ENEMY_TYPES_DATA[enemyType];
-            let baseScale = config.scale || 0.85;
-            this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, 0.5).setDepth(2);
-            this.gameState.zombie.setScale(baseScale);
-            this.gameState.zombie.play(`${enemyType}_walk_anim`);
-        }
+        const config = ENEMY_TYPES_DATA[enemyType];
+        let baseScale = config.scale || 0.85;
+        this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, 0.5).setDepth(2);
+        this.gameState.zombie.setScale(baseScale);
+        this.gameState.zombie.setFlipX(false);
+        this.gameState.zombie.play(`${enemyType}_walk_anim`);
 
         // Reset player to idle position at far left
         if (this.gameState.player && !this.gameState.isAnimating) {
@@ -989,9 +1029,9 @@ class GamePlay extends Phaser.Scene {
             this.gameState.player.setScale(0.6);
         }
 
-        // Ghostly particle trail (blue/cyan ethereal glow)
-        this.gameState.zombieTrail = this.add.particles(950, spawnY, 'ef_fireball1', {
-            scale: { start: 0.08, end: 0 },
+        // Ghostly particle trail (blue/cyan ethereal glow using dynamic glow texture)
+        this.gameState.zombieTrail = this.add.particles(950, spawnY, 'particle_glow', {
+            scale: { start: 0.25, end: 0 },
             speedY: { min: -20, max: 20 },
             speedX: { min: 30, max: 100 },
             lifespan: 600,
@@ -1069,9 +1109,9 @@ class GamePlay extends Phaser.Scene {
                     this.gameState.zombie.hpContainer.destroy();
                 }
                 let bHpBg = this.add.graphics();
-                bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -180, 100, 10);
+                bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -140, 100, 10);
                 let bHpFill = this.add.graphics();
-                bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -180, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
+                bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -140, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
                 
                 let hpContainer = this.add.container(this.gameState.zombie.x, this.gameState.zombie.y);
                 hpContainer.add([bHpBg, bHpFill]);
@@ -1080,6 +1120,74 @@ class GamePlay extends Phaser.Scene {
 
                 // Reload question immediately
                 setTimeout(() => { this.nextQuiz(); }, 500);
+                return;
+            } else if (this.gameState.currentStageIdx < 5) {
+                // Stage 1-5 boss HP <= 0 -> Play Hurt anim, Flip, Run Away!
+                if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); 
+
+                if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
+                if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+                if (this.gameState.zombieTrail) {
+                    this.gameState.zombieTrail.destroy();
+                    this.gameState.zombieTrail = null;
+                }
+
+                this.gameState.isAnimating = true;
+
+                // Play boss hurt animation
+                this.gameState.zombie.play('boss_hurt_anim');
+                
+                // Once hurt animation completes, flip and run away
+                this.gameState.zombie.once('animationcomplete-boss_hurt_anim', () => {
+                    if (!this.gameState.zombie) return;
+                    this.gameState.zombie.setFlipX(true);
+                    this.gameState.zombie.play('boss_hurt_run_anim');
+
+                    this.tweens.add({
+                        targets: this.gameState.zombie,
+                        x: 1100,
+                        duration: 1500,
+                        ease: 'Power2.easeIn',
+                        onComplete: () => {
+                            if (this.gameState.zombie) {
+                                this.gameState.zombie.destroy();
+                                this.gameState.zombie = null;
+                            }
+                            this.gameState.coins += 50; 
+                            this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+                            this.nextQuiz();
+                        }
+                    });
+                });
+                return;
+            } else if (this.gameState.currentStageIdx === 5) {
+                // Stage 6 boss HP <= 0 -> Play Dead anim, Freeze, Mission Complete!
+                if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true); 
+
+                if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
+                if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+                if (this.gameState.zombieTrail) {
+                    this.gameState.zombieTrail.destroy();
+                    this.gameState.zombieTrail = null;
+                }
+
+                this.gameState.isAnimating = true;
+                this.gameState.coins += 50;
+                this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+
+                // Align boss to the ground during death animation
+                this.gameState.zombie.setOrigin(0.5, 1);
+                this.gameState.zombie.y = 425;
+
+                // Play boss dead animation
+                this.gameState.zombie.play('boss_dead_anim');
+                
+                // Once dead animation completes, show Mission Complete screen after 1 second
+                this.gameState.zombie.once('animationcomplete-boss_dead_anim', () => {
+                    this.time.delayedCall(1000, () => {
+                        this.showMissionComplete();
+                    });
+                });
                 return;
             }
         }
@@ -1156,9 +1264,9 @@ class GamePlay extends Phaser.Scene {
                     duration: 600,
                     ease: 'Cubic.easeOut',
                     onUpdate: () => {
-                        // Sparkles particle trail
-                        this.add.particles(flyingText.x, flyingText.y, 'ef_fireball1', {
-                            scale: { start: 0.08, end: 0 },
+                        // Sparkles particle trail (using dynamic glow texture)
+                        this.add.particles(flyingText.x, flyingText.y, 'particle_glow', {
+                            scale: { start: 0.25, end: 0 },
                             speed: { min: 20, max: 80 },
                             lifespan: 300,
                             alpha: { start: 0.8, end: 0 },
@@ -1210,30 +1318,7 @@ class GamePlay extends Phaser.Scene {
 
         let enemyType = this.gameState.currentEnemyType || 'ghost-girl';
 
-        if (enemyType === 'boss') {
-            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
-            this.tweens.add({
-                targets: this.gameState.zombie,
-                x: 170,
-                angle: -15,
-                duration: 200,
-                ease: 'Cubic.easeOut',
-                onComplete: () => {
-                    if (onAttackHit) onAttackHit();
-                    this.tweens.add({
-                        targets: this.gameState.zombie,
-                        x: 280,
-                        angle: 0,
-                        duration: 250,
-                        ease: 'Quad.easeIn',
-                        onComplete: () => {
-                            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
-                        }
-                    });
-                }
-            });
-            return;
-        }
+
 
         const config = ENEMY_TYPES_DATA[enemyType];
         if (!config) return;
@@ -1257,12 +1342,15 @@ class GamePlay extends Phaser.Scene {
             let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
             this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
 
+            let targetY = (enemyType === 'boss') ? 330 : 390;
+            let retreatY = (enemyType === 'boss') ? 310 : 370;
+
             // 3. Lunge forward to hit player
             let startX = this.gameState.zombie.x;
             this.tweens.add({
                 targets: this.gameState.zombie,
                 x: this.gameState.player.x + 50,
-                y: 390,
+                y: targetY,
                 angle: -15,
                 duration: 180,
                 ease: 'Cubic.easeOut',
@@ -1276,7 +1364,7 @@ class GamePlay extends Phaser.Scene {
                         this.tweens.add({
                             targets: this.gameState.zombie,
                             x: Math.max(startX, 280),
-                            y: 370,
+                            y: retreatY,
                             duration: 250,
                             ease: 'Quad.easeIn',
                             onComplete: () => {
@@ -1503,6 +1591,96 @@ class GamePlay extends Phaser.Scene {
                 stageName: stageStr 
             });
         }, 800);
+    }
+
+    showMissionComplete() {
+        this.gameState.isGameOver = true;
+        
+        if (this.gameState.zombie && this.gameState.zombie.hpContainer) {
+            this.gameState.zombie.hpContainer.destroy();
+        }
+
+        // 1. Semi-transparent black overlay
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.7);
+        overlay.fillRect(0, 0, 1000, 600);
+        overlay.setDepth(20);
+        
+        overlay.alpha = 0;
+        this.tweens.add({
+            targets: overlay,
+            alpha: 1,
+            duration: 800
+        });
+
+        // 2. Grand Thai Signboard Panel Frame
+        let winFrame = this.add.graphics();
+        winFrame.setDepth(21);
+        drawThaiFrame(winFrame, 180, 80, 640, 440, 18);
+        
+        winFrame.alpha = 0;
+        this.tweens.add({
+            targets: winFrame,
+            alpha: 1,
+            duration: 800
+        });
+
+        // 3. Title Text: MISSION COMPLETE
+        let titleText = this.add.text(500, 160, 'MISSION COMPLETE', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '56px',
+            fontWeight: 'bold',
+            color: '#fbbf24', // premium gold color
+            stroke: '#1e3e6b',
+            strokeThickness: 6
+        }).setOrigin(0.5).setDepth(22).setShadow(2, 4, 'rgba(0,0,0,0.3)', 2, false, true);
+
+        // Subtitle text: ยินดีด้วย! คุณผ่านด่านทั้งหมดสำเร็จ
+        let subText = this.add.text(500, 250, 'ยินดีด้วย! ท่านปราบจอมมารและผ่านด่านทั้งหมดสำเร็จ', {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '22px',
+            fontWeight: 'bold',
+            color: '#1e293b'
+        }).setOrigin(0.5).setDepth(22);
+
+        // Stats: Coins / Score
+        let scoreText = this.add.text(500, 320, 'คะแนนสะสมสุดท้าย: ' + this.gameState.coins, {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: '#b45309'
+        }).setOrigin(0.5).setDepth(22);
+
+        titleText.alpha = 0;
+        subText.alpha = 0;
+        scoreText.alpha = 0;
+
+        this.tweens.add({
+            targets: [titleText, subText, scoreText],
+            alpha: 1,
+            duration: 800,
+            delay: 300
+        });
+
+        // 4. Buttons: Play Again / Back to Menu
+        let playAgainBtnObj = createChoiceButton(this, 360, 430, 'เล่นอีกครั้ง', () => {
+            this.scene.start('GamePlay', { startStageIdx: 0, charId: this.gameState.charId });
+        }, 220, 60, '26px');
+        playAgainBtnObj.container.setDepth(22);
+        playAgainBtnObj.container.alpha = 0;
+
+        let mainMenuBtnObj = createChoiceButton(this, 640, 430, 'เมนูหลัก', () => {
+            this.scene.start('MainMenu');
+        }, 220, 60, '26px');
+        mainMenuBtnObj.container.setDepth(22);
+        mainMenuBtnObj.container.alpha = 0;
+
+        this.tweens.add({
+            targets: [playAgainBtnObj.container, mainMenuBtnObj.container],
+            alpha: 1,
+            duration: 800,
+            delay: 500
+        });
     }
 }
 
@@ -1788,6 +1966,8 @@ class CategoryMenu extends Phaser.Scene {
             strokeThickness: 6
         }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 2, false, true);
 
+        let unlockedStageIdx = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
+
         let stages = [
             { name: 'ด่าน 1: สัตว์', num: '1' },
             { name: 'ด่าน 2: ร่างกาย', num: '2' },
@@ -1808,17 +1988,20 @@ class CategoryMenu extends Phaser.Scene {
             let cx = startX + (col * spacingX);
             let cy = startY + (row * spacingY);
             
+            // Check if this stage is unlocked
+            let isUnlocked = i <= unlockedStageIdx;
+
             // Premium Slate Card Frame
             let cardBg = this.add.graphics();
             // Drop shadow
             cardBg.fillStyle(0x000000, 0.15);
             cardBg.fillRoundedRect(cx - 118, cy - 66, 240, 140, 12);
-            // Gold border
-            cardBg.fillStyle(0xd97706, 1);
+            // Border: gold if unlocked, slate gray if locked
+            cardBg.fillStyle(isUnlocked ? 0xd97706 : 0x475569, 1);
             cardBg.fillRoundedRect(cx - 120, cy - 70, 240, 140, 12);
 
             let cardInner = this.add.graphics();
-            cardInner.fillStyle(0x1e293b, 1);
+            cardInner.fillStyle(isUnlocked ? 0x1e293b : 0x0f172a, 1);
             cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
             
             // Big Number 
@@ -1826,41 +2009,44 @@ class CategoryMenu extends Phaser.Scene {
                 fontFamily: 'Kanit, sans-serif',
                 fontWeight: 'bold',
                 fontSize: '80px',
-                color: '#ffffff'
+                color: isUnlocked ? '#ffffff' : '#475569'
             }).setOrigin(0.5);
             
             // Name Text
-            let title = this.add.text(cx, cy + 40, st.name, {
+            let titleText = isUnlocked ? st.name : st.name + ' 🔒';
+            let title = this.add.text(cx, cy + 40, titleText, {
                 fontFamily: 'Kanit, sans-serif',
                 fontWeight: 'bold',
                 fontSize: '24px',
-                color: '#e2e8f0'
+                color: isUnlocked ? '#e2e8f0' : '#475569'
             }).setOrigin(0.5);
 
-            // Interaction Zone
-            let zone = this.add.zone(cx, cy, 240, 140).setInteractive({ useHandCursor: true });
-            
-            zone.on('pointerover', () => {
-                cardInner.clear();
-                cardInner.fillStyle(0x334155, 1); // lighter slate on hover
-                cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
-                title.setColor('#fbbf24'); // gold text
-                numTxt.setColor('#fbbf24');
-                this.tweens.add({ targets: [numTxt, title], scale: 1.04, duration: 100 });
-            });
-            
-            zone.on('pointerout', () => {
-                cardInner.clear();
-                cardInner.fillStyle(0x1e293b, 1);
-                cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
-                title.setColor('#e2e8f0');
-                numTxt.setColor('#ffffff');
-                this.tweens.add({ targets: [numTxt, title], scale: 1.0, duration: 100 });
-            });
-            
-            zone.on('pointerdown', () => {
-                this.scene.start('GamePlay', { startStageIdx: i, charId: this.charId });
-            });
+            if (isUnlocked) {
+                // Interaction Zone
+                let zone = this.add.zone(cx, cy, 240, 140).setInteractive({ useHandCursor: true });
+                
+                zone.on('pointerover', () => {
+                    cardInner.clear();
+                    cardInner.fillStyle(0x334155, 1); // Lighter slate on hover
+                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                    title.setColor('#fbbf24'); // Gold text
+                    numTxt.setColor('#fbbf24');
+                    this.tweens.add({ targets: [numTxt, title], scale: 1.04, duration: 100 });
+                });
+                
+                zone.on('pointerout', () => {
+                    cardInner.clear();
+                    cardInner.fillStyle(0x1e293b, 1);
+                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                    title.setColor('#e2e8f0');
+                    numTxt.setColor('#ffffff');
+                    this.tweens.add({ targets: [numTxt, title], scale: 1.0, duration: 100 });
+                });
+                
+                zone.on('pointerdown', () => {
+                    this.scene.start('GamePlay', { startStageIdx: i, charId: this.charId });
+                });
+            }
         });
 
         createChoiceButton(this, 500, 520, 'ย้อนกลับ', () => {
@@ -1888,3 +2074,4 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
