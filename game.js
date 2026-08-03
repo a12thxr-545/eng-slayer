@@ -116,6 +116,41 @@ const ENEMY_TYPES_DATA = {
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/pig/pig-attack/pig-attack${i + 1}.png`),
         scale: 0.85
     },
+    'apple': {
+        walkCount: 19,
+        walkFiles: Array.from({length: 19}, (_, i) => `assets/enemy/stage3/apple/apple-walk/apple-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/apple/apple-attack/apple-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'banana': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/banana/banana-walk/banana-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/banana/banana-attack/banana-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'coconut': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/coconut/coconut-walk/coconut-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/coconut/coconut-attack/coconut-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'orange': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/orange/orange-walk/orange-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/orange/orange-attack/orange-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'watermelon': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/watermelon/watermelon-walk/watermelon-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/watermelon/watermelon-attack/watermelon-attack${i + 1}.png`),
+        scale: 0.85
+    },
     'boss': {
         walkCount: 15,
         walkFiles: Array.from({length: 15}, (_, i) => `assets/enemy/boss/boss-run/boss-run${i + 1}.png`),
@@ -1006,7 +1041,12 @@ class GamePlay extends Phaser.Scene {
         if (this.gameState.isBossFight) {
             this.gameState.currentEnemyType = 'boss';
         } else {
-            const enemyKeys = Object.keys(ENEMY_TYPES_DATA).filter(key => key !== 'boss');
+            let enemyKeys;
+            if (this.gameState.currentStageIdx === 2) {
+                enemyKeys = ['apple', 'banana', 'coconut', 'orange', 'watermelon'];
+            } else {
+                enemyKeys = ['dog', 'duck', 'lion', 'elephant', 'pig'];
+            }
             this.gameState.currentEnemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
         }
 
