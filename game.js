@@ -169,6 +169,12 @@ const SoundEffects = {
         if (typeof game !== 'undefined' && game.sound) {
             game.sound.play('next-stage', { volume: 0.9 });
         }
+    },
+
+    playBossWarning() {
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('wave-boss', { volume: 0.95 });
+        }
     }
 };
 
@@ -213,6 +219,7 @@ class IntroScene extends Phaser.Scene {
         this.load.audio('under-attack', 'assets/sound-effect/under-attack.wav');
         this.load.audio('dog', 'assets/sound-effect/dog.wav');
         this.load.audio('next-stage', 'assets/sound-effect/next-stage.wav');
+        this.load.audio('wave-boss', 'assets/sound-effect/wave-boss.wav');
         
         for (let i = 1; i <= 4; i++) {
             this.load.audio('enemy-attack' + i, 'assets/sound-effect/enemy-attack' + i + '.wav');
@@ -2163,70 +2170,97 @@ class GamePlay extends Phaser.Scene {
         };
     }
 
+    clearStage() {
+        this.gameState.isAnimating = true; 
+        this.gameState.isFinalRound = false;
+        this.gameState.isBossFight = false;
+        this.gameState.scoreInStage = 0;
+
+        // Unlock next stage!
+        let nextStageIdx = this.gameState.currentStageIdx + 1;
+        let currentUnlocked = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
+        if (nextStageIdx > currentUnlocked) {
+            localStorage.setItem('unlockedStageIdx', nextStageIdx);
+        }
+
+        if (this.gameState.currentStageIdx === 5) {
+            // Stage 6 complete -> Trigger Lucky End (stands still) -> Transition to EndCutsceneScene
+            this.triggerLuckyEndAnimation(() => {
+                this.scene.start('EndCutsceneScene', { score: this.gameState.coins });
+            });
+        } else {
+            // Stage 1-5 complete -> Trigger Lucky End (runs off, Player runs after him) -> Transition directly to next stage
+            this.triggerLuckyEndAnimation(() => {
+                SoundEffects.playNextStage();
+                this.gameState.currentStageIdx++;
+                if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
+                    this.gameState.currentStageIdx = 0;
+                }
+                this.gameState.quizQueue = [];
+
+                // Fade camera out and transition
+                this.cameras.main.fade(800, 0, 0, 0, false, (camera, progress) => {
+                    if (progress === 1) {
+                        let bgIndex = this.gameState.currentStageIdx % 6;
+                        this.gameState.bg.setTexture('lvl_bg' + bgIndex);
+                        
+                        let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
+                        this.gameState.stageText.setText(stageName);
+                        this.gameState.stageText.setColor('#ffffff');
+
+                        this.gameState.player.x = -100;
+                        this.gameState.player.y = this.getBaseY();
+                        
+                        this.cameras.main.fadeIn(800, 0, 0, 0);
+
+                        this.tweens.add({
+                            targets: this.gameState.player,
+                            x: 130,
+                            duration: 1000,
+                            ease: 'Power2.easeOut',
+                            onComplete: () => {
+                                this.gameState.player.play('player_idle_anim');
+                                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                this.triggerLuckyStartAnimation(() => {
+                                    this.gameState.isAnimating = false;
+                                    this.nextQuiz();
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    }
+
     nextQuiz() {
         let currentStageData = this.gameState.vocabData[this.gameState.currentStageIdx];
         
-        if (this.gameState.isFinalRound && this.gameState.finalRoundWave === 3 && this.gameState.finalRoundEnemies.length === 0) {
-            this.gameState.isAnimating = true; 
-            this.gameState.isFinalRound = false;
-            this.gameState.scoreInStage = 0;
+        if (this.gameState.isFinalRound && this.gameState.finalRoundWave === 3 && this.gameState.finalRoundEnemies.length === 0 && !this.gameState.isBossFight) {
+            this.gameState.isAnimating = true;
+            this.gameState.isBossFight = true;
+            this.gameState.bossHp = this.gameState.bossMaxHp;
 
-            // Unlock next stage!
-            let nextStageIdx = this.gameState.currentStageIdx + 1;
-            let currentUnlocked = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
-            if (nextStageIdx > currentUnlocked) {
-                localStorage.setItem('unlockedStageIdx', nextStageIdx);
-            }
+            let bossWarningText = this.gameState.currentStageIdx === 5 ? 'ระวัง! จอมมารทศกัณฐ์ปรากฏตัว!' : 'ระวัง! มินิบอสปรากฏตัว!';
+            let bossWarning = this.add.text(500, 300, bossWarningText, { 
+                fontFamily: 'Kanit, sans-serif', fontSize: '60px', fontWeight: 'bold', color: '#ff0000', stroke: '#ffffff', strokeThickness: 8 
+            }).setOrigin(0.5).setDepth(20);
+            
+            // Play boss warning sound
+            SoundEffects.playBossWarning();
 
-            if (this.gameState.currentStageIdx === 5) {
-                // Stage 6 complete -> Trigger Lucky End (stands still) -> Transition to EndCutsceneScene
-                this.triggerLuckyEndAnimation(() => {
-                    this.scene.start('EndCutsceneScene', { score: this.gameState.coins });
-                });
-            } else {
-                // Stage 1-5 complete -> Trigger Lucky End (runs off, Player runs after him) -> Transition directly to next stage
-                this.triggerLuckyEndAnimation(() => {
-                    SoundEffects.playNextStage();
-                    this.gameState.currentStageIdx++;
-                    if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
-                        this.gameState.currentStageIdx = 0;
-                    }
-                    this.gameState.quizQueue = [];
-
-                    // Fade camera out and transition
-                    this.cameras.main.fade(800, 0, 0, 0, false, (camera, progress) => {
-                        if (progress === 1) {
-                            let bgIndex = this.gameState.currentStageIdx % 6;
-                            this.gameState.bg.setTexture('lvl_bg' + bgIndex);
-                            
-                            let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
-                            this.gameState.stageText.setText(stageName);
-                            this.gameState.stageText.setColor('#ffffff');
-
-                            // Spawn player at left offscreen
-                            this.gameState.player.x = -100;
-                            this.gameState.player.y = this.getBaseY();
-                            
-                            this.cameras.main.fadeIn(800, 0, 0, 0);
-
-                            this.tweens.add({
-                                targets: this.gameState.player,
-                                x: 130,
-                                duration: 1000,
-                                ease: 'Power2.easeOut',
-                                onComplete: () => {
-                                    this.gameState.player.play('player_idle_anim');
-                                    if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
-                                    this.triggerLuckyStartAnimation(() => {
-                                        this.gameState.isAnimating = false;
-                                        this.nextQuiz();
-                                    });
-                                }
-                            });
-                        }
-                    });
-                });
-            }
+            // Flash red
+            let flash = this.add.graphics().fillStyle(0xff0000, 0.4).fillRect(0,0,1000,600).setDepth(19);
+            this.tweens.add({ targets: flash, alpha: 0, duration: 200, yoyo: true, repeat: 3, onComplete: () => flash.destroy() });
+            
+            this.tweens.add({
+                targets: bossWarning, scale: 1.15, alpha: 0, duration: 2500, ease: 'Power2',
+                onComplete: () => {
+                    bossWarning.destroy();
+                    this.gameState.isAnimating = false;
+                    this.nextQuiz();
+                }
+            });
             return;
         }
 
@@ -2768,7 +2802,7 @@ class GamePlay extends Phaser.Scene {
                             this.gameState.coins += 50; 
                             this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
                             SoundEffects.playCoin();
-                            this.nextQuiz();
+                            this.clearStage();
                         }
                     });
                 });
@@ -2799,9 +2833,7 @@ class GamePlay extends Phaser.Scene {
                 // Once dead animation completes, trigger Lucky end-stage animation and then transition to EndCutsceneScene
                 this.gameState.zombie.once('animationcomplete-boss_dead_anim', () => {
                     this.time.delayedCall(500, () => {
-                        this.triggerLuckyEndAnimation(() => {
-                            this.scene.start('EndCutsceneScene', { score: this.gameState.coins });
-                        });
+                        this.clearStage();
                     });
                 });
                 return;
