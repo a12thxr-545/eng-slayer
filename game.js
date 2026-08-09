@@ -1,3 +1,177 @@
+const SoundEffects = {
+    audioCtx: null,
+
+    init() {
+        if (!this.audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                this.audioCtx = new AudioContextClass();
+            }
+        }
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+    },
+
+    playBGM() {
+        if (typeof game !== 'undefined' && game.sound) {
+            let bgm = game.sound.get('sound-game');
+            if (!bgm) {
+                bgm = game.sound.add('sound-game', { loop: true, volume: 0.35 });
+                bgm.play();
+            } else if (!bgm.isPlaying) {
+                bgm.play();
+            }
+        }
+    },
+
+    stopBGM() {
+        if (typeof game !== 'undefined' && game.sound) {
+            let bgm = game.sound.get('sound-game');
+            if (bgm && bgm.isPlaying) {
+                bgm.stop();
+            }
+        }
+    },
+
+    playClick() {
+        this.init();
+        if (!this.audioCtx) return;
+        let ctx = this.audioCtx;
+
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+    },
+
+    playCorrect() {
+        this.init();
+        if (!this.audioCtx) return;
+        let ctx = this.audioCtx;
+
+        let now = ctx.currentTime;
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            let osc = ctx.createOscillator();
+            let gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+            gain.gain.setValueAtTime(0, now + idx * 0.08);
+            gain.gain.linearRampToValueAtTime(0.12, now + idx * 0.08 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.15);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.15);
+        });
+    },
+
+    playIncorrect() {
+        this.init();
+        if (!this.audioCtx) return;
+        let ctx = this.audioCtx;
+
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.25);
+
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+    },
+
+    playHit() {
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('under-attack', { volume: 0.95 });
+        }
+    },
+
+    playCoin() {
+        this.init();
+        if (!this.audioCtx) return;
+        let ctx = this.audioCtx;
+
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+        osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
+
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+    },
+
+    playBark() {
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('dog', { volume: 0.9 });
+        }
+    },
+
+    playVictory() {
+        this.stopBGM();
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('gamecomplete', { volume: 0.95 });
+        }
+    },
+
+    playSlash() {
+        if (typeof game !== 'undefined' && game.sound) {
+            let randIdx = Math.floor(Math.random() * 3) + 1;
+            game.sound.play('player-attack' + randIdx, { volume: 0.9 });
+        }
+    },
+
+    playEnemyAttack() {
+        if (typeof game !== 'undefined' && game.sound) {
+            let randIdx = Math.floor(Math.random() * 4) + 1;
+            game.sound.play('enemy-attack' + randIdx, { volume: 0.85 });
+        }
+    },
+
+    playGameOver() {
+        this.stopBGM();
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('gameover', { volume: 0.95 });
+        }
+    },
+
+    playNextStage() {
+        if (typeof game !== 'undefined' && game.sound) {
+            game.sound.play('next-stage', { volume: 0.9 });
+        }
+    }
+};
+
 function drawThaiFrame(graphics, x, y, w, h, radius = 16) {
     // 1. Sleek soft drop shadow
     graphics.fillStyle(0x000000, 0.15);
@@ -12,6 +186,691 @@ function drawThaiFrame(graphics, x, y, w, h, radius = 16) {
     graphics.fillRoundedRect(x + 2, y + 2, w - 4, h - 4, radius - 2);
 }
 
+class IntroScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'IntroScene' });
+    }
+
+    preload() {
+        let loadingText = this.add.text(500, 300, 'กำลังโหลด... กรุณารอสักครู่', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', color: '#ffffff' }).setOrigin(0.5);
+        this.load.on('complete', () => {
+            loadingText.destroy();
+        });
+
+        this.load.image('lvl_menu_bg', 'assets/homepage/homepage.png');
+        this.load.image('player_idle_intro', 'assets/main-character/idle/idle1.png');
+        
+        // Preload player run frames for click animation
+        for (let i = 1; i <= 26; i++) {
+            let numStr = (i === 18) ? '17' : i;
+            this.load.image('player_run_' + i, 'assets/main-character/run/run' + numStr + '.png');
+        }
+
+        // Preload audio assets
+        this.load.audio('sound-game', 'assets/sound-effect/sound-game.mp3');
+        this.load.audio('gamecomplete', 'assets/sound-effect/gamecomplete.wav');
+        this.load.audio('gameover', 'assets/sound-effect/gameover.wav');
+        this.load.audio('under-attack', 'assets/sound-effect/under-attack.wav');
+        this.load.audio('dog', 'assets/sound-effect/dog.wav');
+        this.load.audio('next-stage', 'assets/sound-effect/next-stage.wav');
+        
+        for (let i = 1; i <= 4; i++) {
+            this.load.audio('enemy-attack' + i, 'assets/sound-effect/enemy-attack' + i + '.wav');
+        }
+        for (let i = 1; i <= 3; i++) {
+            this.load.audio('player-attack' + i, 'assets/sound-effect/player-attack' + i + '.wav');
+        }
+    }
+
+    create() {
+        if (!this.textures.exists('particle_glow')) {
+            let canvas = this.textures.createCanvas('particle_glow', 32, 32);
+            let ctx = canvas.context;
+            let gradient = ctx.createRadialGradient(16, 16, 2, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            canvas.refresh();
+        }
+
+        // Dark premium gradient background
+        let bgGraphics = this.add.graphics();
+        bgGraphics.fillGradientStyle(0x0c071a, 0x0c071a, 0x1f0624, 0x1f0624, 1);
+        bgGraphics.fillRect(0, 0, 1000, 600);
+
+        // Faint glowing glassmorphic elements
+        this.add.graphics().fillStyle(0xffaa00, 0.02).fillCircle(180, 180, 280);
+        this.add.graphics().fillStyle(0xa855f7, 0.02).fillCircle(820, 420, 320);
+
+        // Magical rising particle system
+        this.add.particles(0, 0, 'particle_glow', {
+            x: { min: 0, max: 1000 },
+            y: 620,
+            scale: { start: 0.35, end: 0 },
+            speedY: { min: -110, max: -45 },
+            speedX: { min: -25, max: 25 },
+            lifespan: { min: 3500, max: 6500 },
+            alpha: { start: 0.6, end: 0 },
+            tint: [0xa855f7, 0xf59e0b, 0x06b6d4, 0xec4899], // Indigo, Amber, Cyan, Pink
+            blendMode: 'ADD',
+            frequency: 120
+        });
+
+        // Main Character teaser (breathing in center)
+        let playerIntro = this.add.sprite(500, 410, 'player_idle_intro').setOrigin(0.5).setScale(0.55);
+        let breathingTween = this.tweens.add({
+            targets: playerIntro,
+            scaleY: 0.53,
+            y: 414,
+            duration: 900,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Quad.easeInOut'
+        });
+
+        // Register running anim if not exists
+        if (!this.anims.exists('player_run_anim')) {
+            this.anims.create({
+                key: 'player_run_anim',
+                frames: Array.from({length: 26}, (_, i) => ({ key: 'player_run_' + (i + 1) })),
+                frameRate: 16,
+                repeat: -1
+            });
+        }
+
+        // Floating Title Container
+        let titleContainer = this.add.container(500, 220);
+
+        let titleGlow = this.add.text(0, 0, 'ENGLISH SLAYER', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '84px',
+            fontWeight: 'bold',
+            color: '#f59e0b'
+        }).setOrigin(0.5).setAlpha(0.2).setShadow(0, 0, '#f59e0b', 16, true, true);
+
+        let titleText = this.add.text(0, 0, 'ENGLISH SLAYER', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '80px',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            stroke: '#7f1d1d',
+            strokeThickness: 8
+        }).setOrigin(0.5).setShadow(0, 6, 'rgba(0,0,0,0.4)', 8);
+
+        // Apply visual gradient to title text
+        let titleCtx = titleText.context.createLinearGradient(0, 0, 0, titleText.height);
+        titleCtx.addColorStop(0, '#fef08a');
+        titleCtx.addColorStop(0.5, '#f59e0b');
+        titleCtx.addColorStop(1, '#b45309');
+        titleText.setFill(titleCtx);
+
+        let subTitleText = this.add.text(0, 72, 'THE PATH OF WORD MASTERY', {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#38bdf8',
+            stroke: '#0f172a',
+            strokeThickness: 4
+        }).setOrigin(0.5).setShadow(0, 2, 'rgba(0,0,0,0.5)', 2);
+
+        titleContainer.add([titleGlow, titleText, subTitleText]);
+
+        // Floating animation
+        this.tweens.add({
+            targets: titleContainer,
+            y: 200,
+            duration: 2200,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Pulsing Start Instruction
+        let startText = this.add.text(500, 520, '— CLICK ANYWHERE TO START —', {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '22px',
+            fontWeight: 'bold',
+            color: '#ffffff'
+        }).setOrigin(0.5).setShadow(0, 2, 'rgba(0,0,0,0.5)', 2);
+
+        this.tweens.add({
+            targets: startText,
+            alpha: { start: 0.35, end: 1 },
+            scale: { start: 0.98, end: 1.02 },
+            duration: 1100,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Click Action
+        let hasClicked = false;
+        this.input.on('pointerdown', (pointer) => {
+            if (hasClicked) return;
+            hasClicked = true;
+            SoundEffects.playClick();
+            SoundEffects.playBGM();
+
+            // Flash effect
+            this.cameras.main.flash(350, 255, 255, 255);
+
+            // Explosion particle burst
+            this.add.particles(pointer.x, pointer.y, 'particle_glow', {
+                scale: { start: 0.35, end: 0 },
+                speed: { min: 60, max: 220 },
+                angle: { min: 0, max: 360 },
+                lifespan: 500,
+                alpha: { start: 1, end: 0 },
+                tint: 0xf59e0b,
+                blendMode: 'ADD',
+                maxParticles: 25
+            });
+
+            // Stop breathing tween and play running anim
+            if (breathingTween) breathingTween.stop();
+            playerIntro.play('player_run_anim');
+
+            // Character slides off
+            playerIntro.setScale(0.55);
+            this.tweens.add({
+                targets: playerIntro,
+                x: 1100,
+                scaleX: 0.62,
+                duration: 850,
+                ease: 'Power2.easeIn'
+            });
+
+            // Camera Fade transition to Main Menu
+            this.cameras.main.fadeOut(750, 12, 6, 21); // Dark fade
+            this.cameras.main.once('camerafadeoutcomplete', () => {
+                this.scene.start('MainMenu');
+            });
+        });
+    }
+}
+
+class CutsceneScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CutsceneScene' });
+    }
+
+    preload() {
+        let loadingText = this.add.text(500, 300, 'กำลังโหลดเนื้อเรื่อง... กรุณารอสักครู่', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', color: '#ffffff' }).setOrigin(0.5);
+        this.load.on('complete', () => {
+            loadingText.destroy();
+        });
+
+        this.load.image('lvl_menu_bg', 'assets/homepage/homepage.png');
+        for (let i = 1; i <= 10; i++) {
+            this.load.image('cutscene_' + i, 'assets/cutscene/cutscene' + i + '.png');
+        }
+    }
+
+    create() {
+        SoundEffects.playBGM();
+        this.currentPage = 1;
+        this.activeElements = [];
+        this.drawPage();
+    }
+
+    clearPage() {
+        this.activeElements.forEach(el => el.destroy());
+        this.activeElements = [];
+    }
+
+    drawPage() {
+        this.clearPage();
+
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
+        this.activeElements.push(bg);
+
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.85);
+        overlay.fillRect(0, 0, 1000, 600);
+        this.activeElements.push(overlay);
+
+        if (this.currentPage === 1) {
+            // Page 1: Panels 1-6 in 2x3 grid
+            const cols = [290, 710];
+            const rows = [100, 260, 420];
+
+            const panels = [];
+            const borders = [];
+
+            for (let i = 0; i < 6; i++) {
+                let colIdx = i % 2;
+                let rowIdx = Math.floor(i / 2);
+                let px = cols[colIdx];
+                let py = rows[rowIdx];
+
+                let key = 'cutscene_' + (i + 1);
+                let texture = this.textures.get(key).getSourceImage();
+                let ratio = texture.width / texture.height;
+                
+                // Fit to max size 360x135
+                let maxW = 360;
+                let maxH = 135;
+                let w = maxW;
+                let h = maxW / ratio;
+                if (h > maxH) {
+                    h = maxH;
+                    w = maxH * ratio;
+                }
+
+                // Border graphics fitted around image
+                let border = this.add.graphics();
+                border.lineStyle(3, 0xffffff, 0.9);
+                border.strokeRect(px - w/2 - 2, py - h/2 - 2, w + 4, h + 4);
+                border.fillStyle(0x111827, 1);
+                border.fillRect(px - w/2 - 2, py - h/2 - 2, w + 4, h + 4);
+                border.setDepth(1);
+                border.alpha = 0;
+                borders.push(border);
+                this.activeElements.push(border);
+
+                // Cutscene image
+                let img = this.add.image(px, py, key).setDisplaySize(w, h);
+                img.setDepth(2);
+                img.alpha = 0;
+                panels.push(img);
+                this.activeElements.push(img);
+            }
+
+            // Sequential Fade-in Tweens
+            panels.forEach((panel, index) => {
+                this.tweens.add({
+                    targets: [panel, borders[index]],
+                    alpha: 1,
+                    duration: 500,
+                    delay: index * 600,
+                    ease: 'Power2.easeOut'
+                });
+            });
+
+            // Back button (left)
+            let btnBack = createChoiceButton(this, 180, 560, 'ย้อนกลับ (BACK)', () => {
+                this.scene.start('MainMenu');
+            }, 180, 44, '18px');
+            btnBack.container.setDepth(10);
+            this.activeElements.push(btnBack.container);
+
+            // Next button (right)
+            let btnNext = createChoiceButton(this, 820, 560, 'ถัดไป (NEXT)', () => {
+                this.currentPage = 2;
+                this.drawPage();
+            }, 180, 44, '18px');
+            btnNext.container.setDepth(10);
+            this.activeElements.push(btnNext.container);
+
+        } else if (this.currentPage === 2) {
+            // Page 2: Panels 7-10 in 2x2 grid with subtitles
+            const cols = [290, 710];
+            const rows = [140, 360];
+            const subtitles = [
+                "ณ สวนสาธารณะแห่งหนึ่ง",
+                "ช่วยด้วยค่ะ!!! น้องหมาหลุด",
+                "ช่วยจับน้องหมาทีค่ะ!!!",
+                "กลับมานี่นะเจ้าหมา"
+            ];
+
+            const panels = [];
+            const borders = [];
+            const texts = [];
+
+            for (let i = 0; i < 4; i++) {
+                let colIdx = i % 2;
+                let rowIdx = Math.floor(i / 2);
+                let px = cols[colIdx];
+                let py = rows[rowIdx];
+
+                let key = 'cutscene_' + (7 + i);
+                let texture = this.textures.get(key).getSourceImage();
+                let ratio = texture.width / texture.height;
+                
+                // Fit to max size 360x170
+                let maxW = 360;
+                let maxH = 170;
+                let w = maxW;
+                let h = maxW / ratio;
+                if (h > maxH) {
+                    h = maxH;
+                    w = maxH * ratio;
+                }
+
+                // Border graphics fitted around image
+                let border = this.add.graphics();
+                border.lineStyle(3, 0xffffff, 0.9);
+                border.strokeRect(px - w/2 - 2, py - h/2 - 12, w + 4, h + 4);
+                border.fillStyle(0x111827, 1);
+                border.fillRect(px - w/2 - 2, py - h/2 - 12, w + 4, h + 4);
+                border.setDepth(1);
+                border.alpha = 0;
+                borders.push(border);
+                this.activeElements.push(border);
+
+                // Cutscene image (shifted up slightly to leave space for text)
+                let img = this.add.image(px, py - 10, key).setDisplaySize(w, h);
+                img.setDepth(2);
+                img.alpha = 0;
+                panels.push(img);
+                this.activeElements.push(img);
+
+                // Caption text positioned below image
+                let capText = this.add.text(px, py + h/2 + 2, subtitles[i], {
+                    fontFamily: 'Kanit, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    color: '#ffffff',
+                    stroke: '#000000',
+                    strokeThickness: 4
+                }).setOrigin(0.5).setDepth(3);
+                capText.alpha = 0;
+                texts.push(capText);
+                this.activeElements.push(capText);
+            }
+
+            // Sequential Fade-in Tweens
+            panels.forEach((panel, index) => {
+                this.tweens.add({
+                    targets: [panel, borders[index], texts[index]],
+                    alpha: 1,
+                    duration: 500,
+                    delay: index * 800,
+                    ease: 'Power2.easeOut'
+                });
+            });
+
+            // Back button (left)
+            let btnBack = createChoiceButton(this, 180, 560, 'ย้อนกลับ (BACK)', () => {
+                this.currentPage = 1;
+                this.drawPage();
+            }, 180, 44, '18px');
+            btnBack.container.setDepth(10);
+            this.activeElements.push(btnBack.container);
+
+            // Start Game button (right) - Starts CategoryMenu stage selection
+            let btnStart = createChoiceButton(this, 820, 560, 'เริ่มเกม (START)', () => {
+                this.scene.start('CategoryMenu', { charId: 'thai' });
+            }, 180, 44, '18px');
+            btnStart.container.setDepth(10);
+            this.activeElements.push(btnStart.container);
+        }
+    }
+}
+
+class EndCutsceneScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'EndCutsceneScene' });
+    }
+
+    preload() {
+        let loadingText = this.add.text(500, 300, 'กำลังโหลดฉากจบ... กรุณารอสักครู่', { fontFamily: 'Kanit, sans-serif', fontSize: '36px', color: '#ffffff' }).setOrigin(0.5);
+        this.load.on('complete', () => {
+            loadingText.destroy();
+        });
+
+        this.load.image('lvl_menu_bg', 'assets/homepage/homepage.png');
+        for (let i = 11; i <= 13; i++) {
+            this.load.image('cutscene_' + i, 'assets/cutscene/cutscene' + i + '.png');
+        }
+    }
+
+    init(data) {
+        this.finalScore = data ? (data.score || 0) : 0;
+    }
+
+    create() {
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.85);
+        overlay.fillRect(0, 0, 1000, 600);
+
+        // Panel positions:
+        // 11 and 12 side-by-side in Row 1 (y = 140)
+        // 13 centered in Row 2 (y = 360)
+        const coords = [
+            { x: 290, y: 140, key: 'cutscene_11', text: "มานี่มาเจ้าหมา" },
+            { x: 710, y: 140, key: 'cutscene_12', text: "เก่งมากเด็กดี" },
+            { x: 500, y: 360, key: 'cutscene_13', text: "ผู้หญิง: ขอบคุณมากนะคะ" }
+        ];
+
+        const panels = [];
+        const borders = [];
+        const texts = [];
+
+        coords.forEach((coord, index) => {
+            let texture = this.textures.get(coord.key).getSourceImage();
+            let ratio = texture.width / texture.height;
+
+            // Fit to max size 360x170
+            let maxW = 360;
+            let maxH = 170;
+            let w = maxW;
+            let h = maxW / ratio;
+            if (h > maxH) {
+                h = maxH;
+                w = maxH * ratio;
+            }
+
+            // Border graphics
+            let border = this.add.graphics();
+            border.lineStyle(3, 0xffffff, 0.9);
+            border.strokeRect(coord.x - w/2 - 2, coord.y - h/2 - 12, w + 4, h + 4);
+            border.fillStyle(0x111827, 1);
+            border.fillRect(coord.x - w/2 - 2, coord.y - h/2 - 12, w + 4, h + 4);
+            border.setDepth(1);
+            border.alpha = 0;
+            borders.push(border);
+
+            // Cutscene image (shifted up slightly to leave space for text)
+            let img = this.add.image(coord.x, coord.y - 10, coord.key).setDisplaySize(w, h);
+            img.setDepth(2);
+            img.alpha = 0;
+            panels.push(img);
+
+            // Caption text
+            let capText = this.add.text(coord.x, coord.y + h/2 + 2, coord.text, {
+                fontFamily: 'Kanit, sans-serif',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4
+            }).setOrigin(0.5).setDepth(3);
+            capText.alpha = 0;
+            texts.push(capText);
+        });
+
+        // Sequential Fade-in Tweens
+        panels.forEach((panel, index) => {
+            this.tweens.add({
+                targets: [panel, borders[index], texts[index]],
+                alpha: 1,
+                duration: 500,
+                delay: index * 900,
+                ease: 'Power2.easeOut'
+            });
+        });
+
+        // Continue button
+        let btnNext = createChoiceButton(this, 500, 560, 'แสดงผลสรุป (CONTINUE)', () => {
+            this.showMissionComplete();
+        }, 260, 44, '18px');
+        btnNext.container.setDepth(10);
+        btnNext.container.alpha = 0;
+
+        this.tweens.add({
+            targets: btnNext.container,
+            alpha: 1,
+            duration: 800,
+            delay: 3 * 900
+        });
+    }
+
+    showMissionComplete() {
+        SoundEffects.playVictory();
+        this.children.removeAll();
+
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.7);
+        overlay.fillRect(0, 0, 1000, 600);
+        overlay.setDepth(20);
+
+        let winFrame = this.add.graphics();
+        winFrame.setDepth(21);
+        drawThaiFrame(winFrame, 180, 80, 640, 440, 18);
+
+        let titleText = this.add.text(500, 160, 'MISSION COMPLETE', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '56px',
+            fontWeight: 'bold',
+            color: '#fbbf24',
+            stroke: '#1e3e6b',
+            strokeThickness: 6
+        }).setOrigin(0.5).setDepth(22).setShadow(2, 4, 'rgba(0,0,0,0.3)', 2, false, true);
+
+        let subText = this.add.text(500, 250, 'ยินดีด้วย! ท่านปราบจอมมารและผ่านด่านทั้งหมดสำเร็จ', {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '22px',
+            fontWeight: 'bold',
+            color: '#1e293b'
+        }).setOrigin(0.5).setDepth(22);
+
+        let scoreText = this.add.text(500, 320, 'คะแนนสะสมสุดท้าย: ' + this.finalScore, {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: '#b45309'
+        }).setOrigin(0.5).setDepth(22);
+
+        let playAgainBtnObj = createChoiceButton(this, 360, 430, 'เล่นอีกครั้ง', () => {
+            this.scene.start('GamePlay', { startStageIdx: 0, charId: 'thai' });
+        }, 220, 60, '26px');
+        playAgainBtnObj.container.setDepth(22);
+
+        let mainMenuBtnObj = createChoiceButton(this, 640, 430, 'เมนูหลัก', () => {
+            this.scene.start('MainMenu');
+        }, 220, 60, '26px');
+        mainMenuBtnObj.container.setDepth(22);
+    }
+}
+
+class CategoryMenu extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CategoryMenu' });
+    }
+
+    init(data) {
+        this.charId = data && data.charId ? data.charId : 'thai';
+    }
+
+    create() {
+        SoundEffects.playBGM();
+
+        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
+        overlay.fillRect(0, 0, 1000, 600);
+
+        this.add.text(500, 70, 'WORD RUSH - เลือกด่าน', {
+            fontFamily: 'Mitr, Kanit, sans-serif',
+            fontSize: '54px',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            stroke: '#1e3e6b',
+            strokeThickness: 6
+        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 2, false, true);
+
+        let unlockedStageIdx = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
+
+        let stages = [
+            { name: 'ด่าน 1: สัตว์', num: '1' },
+            { name: 'ด่าน 2: ร่างกาย', num: '2' },
+            { name: 'ด่าน 3: ผักและผลไม้', num: '3' },
+            { name: 'ด่าน 4: วิทยาศาสตร์', num: '4' },
+            { name: 'ด่าน 5: คอมพิวเตอร์', num: '5' },
+            { name: 'ด่าน 6: ครอบครัว', num: '6' }
+        ];
+        
+        let startX = 220;
+        let startY = 180;
+        let spacingX = 280;
+        let spacingY = 180;
+        
+        stages.forEach((st, i) => {
+            let row = Math.floor(i / 3);
+            let col = i % 3;
+            let cx = startX + (col * spacingX);
+            let cy = startY + (row * spacingY);
+            
+            // Check if this stage is unlocked
+            let isUnlocked = i <= unlockedStageIdx;
+
+            // Premium Slate Card Frame
+            let cardBg = this.add.graphics();
+            cardBg.fillStyle(0x000000, 0.15);
+            cardBg.fillRoundedRect(cx - 118, cy - 66, 240, 140, 12);
+            cardBg.fillStyle(isUnlocked ? 0xd97706 : 0x475569, 1);
+            cardBg.fillRoundedRect(cx - 120, cy - 70, 240, 140, 12);
+
+            let cardInner = this.add.graphics();
+            cardInner.fillStyle(isUnlocked ? 0x1e293b : 0x0f172a, 1);
+            cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+            
+            // Big Number 
+            let numTxt = this.add.text(cx, cy - 15, st.num, {
+                fontFamily: 'Kanit, sans-serif',
+                fontWeight: 'bold',
+                fontSize: '80px',
+                color: isUnlocked ? '#ffffff' : '#475569'
+            }).setOrigin(0.5);
+            
+            // Name Text
+            let titleText = isUnlocked ? st.name : st.name + ' 🔒';
+            let title = this.add.text(cx, cy + 40, titleText, {
+                fontFamily: 'Kanit, sans-serif',
+                fontWeight: 'bold',
+                fontSize: '24px',
+                color: isUnlocked ? '#e2e8f0' : '#475569'
+            }).setOrigin(0.5);
+
+            if (isUnlocked) {
+                let zone = this.add.zone(cx, cy, 240, 140).setInteractive({ useHandCursor: true });
+                
+                zone.on('pointerover', () => {
+                    cardInner.clear();
+                    cardInner.fillStyle(0x334155, 1);
+                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                    title.setColor('#fbbf24');
+                    numTxt.setColor('#fbbf24');
+                    this.tweens.add({ targets: [numTxt, title], scale: 1.04, duration: 100 });
+                });
+                
+                zone.on('pointerout', () => {
+                    cardInner.clear();
+                    cardInner.fillStyle(0x1e293b, 1);
+                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
+                    title.setColor('#e2e8f0');
+                    numTxt.setColor('#ffffff');
+                    this.tweens.add({ targets: [numTxt, title], scale: 1.0, duration: 100 });
+                });
+                
+                zone.on('pointerdown', () => {
+                    SoundEffects.playClick();
+                    this.scene.start('GamePlay', { startStageIdx: i, charId: this.charId });
+                });
+            }
+        });
+
+        createChoiceButton(this, 500, 520, 'ย้อนกลับ', () => {
+            this.scene.start('MainMenu');
+        });
+    }
+}
+
 class MainMenu extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenu' });
@@ -23,12 +882,14 @@ class MainMenu extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        this.load.image('lvl_menu_bg', 'assets/thai/background1.png');
+        this.load.image('lvl_menu_bg', 'assets/homepage/homepage.png');
+        this.load.image('game_logo', 'assets/logo/logo.png');
     }
 
     create() {
         // Unlock all stages for testing
         localStorage.setItem('unlockedStageIdx', 5);
+        SoundEffects.playBGM();
 
         let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
         
@@ -36,45 +897,35 @@ class MainMenu extends Phaser.Scene {
         overlay.fillStyle(0x000000, 0.4);
         overlay.fillRect(0, 0, 1000, 600);
 
-        // Grand Thai Signboard Frame for Title & Subtitle
-        let signboard = this.add.graphics();
-        drawThaiFrame(signboard, 180, 50, 640, 250, 18);
-
-        // Bouncing/Breathing Title
-        let titleBlock = this.add.container(500, 150);
+        // Bouncing/Breathing Title Logo (Centered directly on screen)
+        let titleBlock = this.add.container(500, 160);
         
-        let titleText = this.add.text(0, 0, 'WORD RUSH', {
-            fontFamily: 'Mitr, Kanit, sans-serif',
-            fontSize: '72px',
-            fontWeight: 'bold',
-            color: '#7f1d1d', // Premium crimson red
-        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 4);
-
-        titleBlock.add(titleText);
+        let logoImg = this.add.image(0, 0, 'game_logo').setDisplaySize(360, 240);
+        titleBlock.add(logoImg);
 
         this.tweens.add({
             targets: titleBlock,
-            y: 135, 
+            y: 150, 
             duration: 1800,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
 
-        this.add.text(500, 245, 'เกมเติมตัวอักษรฝึกภาษาอังกฤษ (Fill-in-the-blank)', {
-            fontFamily: 'Kanit, sans-serif',
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: '#b45309', // Sleek warm amber
-        }).setOrigin(0.5);
+
 
         // Start Button 
-        let btnStart = createChoiceButton(this, 500, 390, 'เริ่มเล่นเกม (START GAME)', () => {
-            this.scene.start('CategoryMenu', { charId: 'thai' }); 
+        let btnStart = createChoiceButton(this, 500, 350, 'เริ่มเล่นเกม (START GAME)', () => {
+            this.scene.start('CutsceneScene'); 
+        });
+
+        // Select Stage Button
+        let btnSelect = createChoiceButton(this, 500, 435, 'เลือกด่าน (SELECT STAGE)', () => {
+            this.scene.start('CategoryMenu', { charId: 'thai' });
         });
 
         // Settings Button
-        let btnSettings = createChoiceButton(this, 500, 500, 'ตั้งค่าความยาก', () => {
+        let btnSettings = createChoiceButton(this, 500, 520, 'ตั้งค่าความยาก', () => {
             this.scene.start('SettingsMenu');
         });
     }
@@ -86,70 +937,104 @@ const ENEMY_TYPES_DATA = {
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/dog/dog-walk/dog-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/dog/dog-attack/dog-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'duck': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/duck/duck-walk/duck-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/duck/duck-attack/duck-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'lion': {
         walkCount: 19,
         walkFiles: Array.from({length: 19}, (_, i) => `assets/enemy/stage1/lion/lion-walk/lion-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/lion/lion-attack/lion-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'elephant': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/elephant/elephant-walk/elephant-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/elephant/elephant-attack/elephant-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'pig': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage1/pig/pig-walk/pig-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage1/pig/pig-attack/pig-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'apple': {
         walkCount: 19,
         walkFiles: Array.from({length: 19}, (_, i) => `assets/enemy/stage3/apple/apple-walk/apple-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/apple/apple-attack/apple-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'banana': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/banana/banana-walk/banana-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/banana/banana-attack/banana-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'coconut': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/coconut/coconut-walk/coconut-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/coconut/coconut-attack/coconut-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'orange': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/orange/orange-walk/orange-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/orange/orange-attack/orange-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
     },
     'watermelon': {
         walkCount: 20,
         walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage3/watermelon/watermelon-walk/watermelon-walk${i + 1}.png`),
         attackCount: 4,
         attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage3/watermelon/watermelon-attack/watermelon-attack${i + 1}.png`),
-        scale: 0.85
+        scale: 0.85,
+        yOffset: 0
+    },
+    'brain': {
+        walkCount: 18,
+        walkFiles: Array.from({length: 18}, (_, i) => `assets/enemy/stage2/brain/brain-walk/brain-walk${i + 1}.png`),
+        attackCount: 2,
+        attackFiles: Array.from({length: 2}, (_, i) => `assets/enemy/stage2/brain/brain-attack/brain-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'heart': {
+        walkCount: 17,
+        walkFiles: Array.from({length: 17}, (_, i) => `assets/enemy/stage2/heart/heart-walk/heart-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage2/heart/heart-attack/heart-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'nose': {
+        walkCount: 18,
+        walkFiles: Array.from({length: 18}, (_, i) => `assets/enemy/stage2/nose/nose-walk/nose-walk${i + 1}.png`),
+        attackCount: 5,
+        attackFiles: Array.from({length: 5}, (_, i) => `assets/enemy/stage2/nose/nose-attack/nose-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
     },
     'boss': {
         walkCount: 15,
@@ -160,6 +1045,90 @@ const ENEMY_TYPES_DATA = {
             'assets/enemy/boss/boss-attack/boss-attack2.png'
         ],
         scale: 1.0
+    },
+    'glass-tube': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage4/glass-tube/glass-tube-walk/glass-tube-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage4/glass-tube/glass-tube-attack/glass-tube-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'scientist': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage4/scientist/scientist-walk/scientist-walk${i + 1}.png`),
+        attackCount: 5,
+        attackFiles: Array.from({length: 5}, (_, i) => `assets/enemy/stage4/scientist/scientist-attack/scientist-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'slime': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage4/slime/slime-walk/slime-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage4/slime/slime-attack/slime-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'VGA': {
+        walkCount: 17,
+        walkFiles: Array.from({length: 17}, (_, i) => `assets/enemy/stage5/VGA/VGA-walk/VGA-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage5/VGA/VGA-attack/VGA-attack${i + 1}.png`),
+        scale: 0.85
+    },
+    'keyboard': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage5/keyboard/keyboard-fly/keyboard-fly${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage5/keyboard/keyboard-attack/keyboard-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'mouse': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage5/mouse/mouse-walk/mouse-walk${i + 1}.png`),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage5/mouse/mouse-attack/mouse-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'ram': {
+        walkCount: 14,
+        walkFiles: [
+            ...Array.from({length: 9}, (_, i) => `assets/enemy/stage5/ram/ram-walk/ram-walk${i + 1}.png`),
+            ...Array.from({length: 5}, (_, i) => `assets/enemy/stage5/ram/ram-walk/ram-walk${i + 11}.png`)
+        ],
+        attackCount: 3,
+        attackFiles: Array.from({length: 3}, (_, i) => `assets/enemy/stage5/ram/ram-attack/ram-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'family': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => `assets/enemy/stage6/family/family-walk/family-walk${i + 1}.png`),
+        attackCount: 3,
+        attackFiles: Array.from({length: 3}, (_, i) => `assets/enemy/stage6/family/family-attack/family-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'familytwo': {
+        walkCount: 18,
+        walkFiles: Array.from({length: 18}, (_, i) => `assets/enemy/stage6/familytwo/familytwo-walk/familytwo-walk${i + 1}.png`),
+        attackCount: 3,
+        attackFiles: Array.from({length: 3}, (_, i) => `assets/enemy/stage6/familytwo/familytwo-attack/familytwo-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0
+    },
+    'ghostgirl': {
+        walkCount: 20,
+        walkFiles: Array.from({length: 20}, (_, i) => {
+            let num = i + 1;
+            if (num === 19) return 'assets/enemy/stage6/ghostgirl/ghostgirl-fly/ghostgirl-fly219.png';
+            return `assets/enemy/stage6/ghostgirl/ghostgirl-fly/ghostgirl-fly${num}.png`;
+        }),
+        attackCount: 4,
+        attackFiles: Array.from({length: 4}, (_, i) => `assets/enemy/stage6/ghostgirl/ghostgirl-attack/ghostgirl-attack${i + 1}.png`),
+        scale: 0.85,
+        yOffset: 0,
+        float: true
     }
 };
 
@@ -343,7 +1312,10 @@ class GamePlay extends Phaser.Scene {
             currentQuiz: null,
             isBossFight: false,
             bossHp: 0,
-            bossMaxHp: 3
+            bossMaxHp: 3,
+            isFinalRound: false,
+            finalRoundWave: 0,
+            finalRoundEnemies: []
         };
         this.selectedStartStage = data && data.startStageIdx !== undefined ? data.startStageIdx : 0;
         this.gameState.charId = 'thai';
@@ -355,9 +1327,9 @@ class GamePlay extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        // Load Thai Backgrounds (background1.png to background6.png)
+        // Load Stage Backgrounds (stage1.png to stage6.png)
         for (let i = 0; i < 6; i++) {
-            this.load.image('lvl_bg' + i, 'assets/thai/background' + (i + 1) + '.png');
+            this.load.image('lvl_bg' + i, 'assets/background/stage' + (i + 1) + '.png');
         }
 
         // Load Main Character frames
@@ -380,6 +1352,17 @@ class GamePlay extends Phaser.Scene {
         }
         for (let i = 1; i <= 12; i++) {
             this.load.image('player_dead_' + i, 'assets/main-character/main-dead/dead' + i + '.png');
+        }
+
+        // Load Lucky the Dog frames
+        for (let i = 1; i <= 20; i++) {
+            this.load.image('lucky_stand_' + i, 'assets/pet/lucky/lucky-stand/lucky-stand' + i + '.png');
+        }
+        for (let i = 1; i <= 21; i++) {
+            this.load.image('lucky_run_' + i, 'assets/pet/lucky/lucky-run/lucky-run' + i + '.png');
+        }
+        for (let i = 1; i <= 10; i++) {
+            this.load.image('luacky_escape_' + i, 'assets/pet/lucky/luacky-escape/luacky-escape' + i + '.png');
         }
 
 
@@ -427,6 +1410,7 @@ class GamePlay extends Phaser.Scene {
     playerTakeDamage() {
         if (this.gameState.isGameOver) return;
         this.gameState.hp--;
+        SoundEffects.playHit();
         this.updateHpBar();
         
         // Flash screen red
@@ -479,22 +1463,34 @@ class GamePlay extends Phaser.Scene {
                     if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
                     if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
 
-                    // Fade out the current enemy and spawn a fresh one for the next question
-                    this.tweens.add({
-                        targets: this.gameState.zombie,
-                        alpha: 0,
-                        duration: 600,
-                        onComplete: () => {
-                            this.gameState.isAnimating = false;
-                            this.nextQuiz();
+                    if (this.gameState.isFinalRound) {
+                        this.gameState.isAnimating = false;
+                        // Resume other enemies' walk tweens
+                        if (this.gameState.finalRoundEnemies) {
+                            this.gameState.finalRoundEnemies.forEach(e => {
+                                if (e && e.moveTween) e.moveTween.resume();
+                            });
                         }
-                    });
+                        this.nextQuiz();
+                    } else {
+                        // Fade out the current enemy and spawn a fresh one for the next question
+                        this.tweens.add({
+                            targets: this.gameState.zombie,
+                            alpha: 0,
+                            duration: 600,
+                            onComplete: () => {
+                                this.gameState.isAnimating = false;
+                                this.nextQuiz();
+                            }
+                        });
+                    }
                 }
             }
         });
     }
 
     create() {
+        SoundEffects.playBGM();
         // Create a dynamic radial glow texture for particles
         if (!this.textures.exists('particle_glow')) {
             let canvas = this.textures.createCanvas('particle_glow', 32, 32);
@@ -578,11 +1574,11 @@ class GamePlay extends Phaser.Scene {
         }).setOrigin(0.5).setAlign('center');
 
         // Setup Player (Main Character) - starts at far left
-        this.gameState.player = this.add.sprite(130, 425, 'player_idle').setOrigin(0.5, 1).setDepth(2);
+        this.gameState.player = this.add.sprite(130, this.getBaseY(), 'player_idle').setOrigin(0.5, 1).setDepth(2);
         this.gameState.player.setScale(0.6);
 
         // Gold Aura Foot Particles (Using dynamic glow texture)
-        this.gameState.auraParticles = this.add.particles(130, 420, 'particle_glow', {
+        this.gameState.auraParticles = this.add.particles(130, this.getBaseY(), 'particle_glow', {
             scale: { start: 0.2, end: 0 },
             speedY: { min: -120, max: -40 },
             speedX: { min: -25, max: 25 },
@@ -661,7 +1657,7 @@ class GamePlay extends Phaser.Scene {
                             scaleX: 0.6,
                             angle: 0,
                             x: 130,
-                            y: 425,
+                            y: this.getBaseY(),
                             duration: 200,
                             onComplete: () => {
                                 if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
@@ -793,6 +1789,31 @@ class GamePlay extends Phaser.Scene {
             });
         }
         
+        if (!this.anims.exists('lucky_stand_anim')) {
+            this.anims.create({
+                key: 'lucky_stand_anim',
+                frames: Array.from({length: 20}, (_, i) => ({ key: 'lucky_stand_' + (i + 1) })),
+                frameRate: 12,
+                repeat: -1
+            });
+        }
+        if (!this.anims.exists('lucky_run_anim')) {
+            this.anims.create({
+                key: 'lucky_run_anim',
+                frames: Array.from({length: 20}, (_, i) => ({ key: 'lucky_run_' + (i + 1) })),
+                frameRate: 14,
+                repeat: -1
+            });
+        }
+        if (!this.anims.exists('luacky_escape_anim')) {
+            this.anims.create({
+                key: 'luacky_escape_anim',
+                frames: Array.from({length: 10}, (_, i) => ({ key: 'luacky_escape_' + (i + 1) })),
+                frameRate: 14,
+                repeat: -1
+            });
+        }
+        
         // Setup Action Buttons (4 Buttons, Horizontal Row at the Bottom)
         let bw = 230; 
         let bh = 60;
@@ -817,7 +1838,284 @@ class GamePlay extends Phaser.Scene {
             }
         });
 
-        this.nextQuiz();
+        this.triggerLuckyStartAnimation(() => {
+            this.nextQuiz();
+        });
+    }
+
+    showMissionBriefing(onComplete) {
+        this.gameState.isAnimating = true;
+
+        const STAGE_MISSIONS = [
+            {
+                title: "ภารกิจด่านที่ 1: ตามล่าหาเพื่อนสี่ขา",
+                desc: "ตามหา 'หมา (Dog)' ที่หลงทางในป่าลึกอันตราย!\nจงสะกดคำศัพท์สัตว์ต่าง ๆ เพื่อเปิดทางตามหามันให้เจอ!",
+                icon: "🐕"
+            },
+            {
+                title: "ภารกิจด่านที่ 2: ร่างกายที่แข็งแกร่ง",
+                desc: "ตามหา 'หัวใจ (Heart)' เพื่อฟื้นฟูพลังชีวิตและร่างกาย!\nจงฝ่าฟันเหล่าซอมบี้อวัยวะต่าง ๆ และกู้ชีพพลังชีวิตขึ้นมา!",
+                icon: "❤️"
+            },
+            {
+                title: "ภารกิจด่านที่ 3: แหล่งพลังงานจากธรรมชาติ",
+                desc: "ตามหา 'ผลไม้ (Fruits)' แสนหวานเพื่อเติมพลังงานที่สูญเสียไป!\nจัดการกับปีศาจผักผลไม้เพื่อเก็บเสบียงในการเดินทาง!",
+                icon: "🍎"
+            },
+            {
+                title: "ภารกิจด่านที่ 4: ความลับใต้แล็บวิจัย",
+                desc: "ตามหา 'อุปกรณ์วิทยาศาสตร์ (Science Equipment)' เพื่อไขปริศนาไวรัส!\nพิชิตสิ่งประดิษฐ์และสไลม์เคมีทดลองที่ขัดขวางคุณ!",
+                icon: "🧪"
+            },
+            {
+                title: "ภารกิจด่านที่ 5: ยุทโธปกรณ์เทคโนโลยี",
+                desc: "ตามหา 'อุปกรณ์คอมพิวเตอร์ (Computer Equipment)' เพื่อเปิดระบบสื่อสาร!\nปราบเหล่าฮาร์ดแวร์ไอทีที่คลุ้มคลั่งและเปิดใช้งานระบบหลัก!",
+                icon: "💻"
+            },
+            {
+                title: "ภารกิจด่านที่ 6: สายสัมพันธ์ที่ขาดหาย",
+                desc: "ตามหา 'พี่ชายที่หายตัวไป (The Missing Brother)' ในปราสาทผีสิง!\nนี่คือด่านสุดท้ายที่จะนำครอบครัวกลับมารวมกันอีกครั้ง!",
+                icon: "👦"
+            }
+        ];
+
+        let stageIdx = this.gameState.currentStageIdx;
+        let mission = STAGE_MISSIONS[stageIdx % 6];
+
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x070c18, 0.85);
+        overlay.fillRect(0, 0, 1000, 600);
+        overlay.setDepth(60);
+        overlay.alpha = 0;
+
+        let modalContainer = this.add.container(500, 300);
+        modalContainer.setDepth(61);
+        modalContainer.alpha = 0;
+        modalContainer.scale = 0.8;
+
+        let modalFrame = this.add.graphics();
+        modalFrame.fillStyle(0x000000, 0.35);
+        modalFrame.fillRoundedRect(-302, -196, 604, 404, 20);
+        modalFrame.fillStyle(0xd97706, 1);
+        modalFrame.fillRoundedRect(-300, -200, 600, 400, 20);
+        modalFrame.fillStyle(0xfffbeb, 0.98);
+        modalFrame.fillRoundedRect(-297, -197, 594, 394, 18);
+        
+        modalContainer.add(modalFrame);
+
+        let iconText = this.add.text(0, -115, mission.icon, {
+            fontSize: '80px'
+        }).setOrigin(0.5);
+        modalContainer.add(iconText);
+
+        let titleText = this.add.text(0, -35, mission.title, {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '30px',
+            fontWeight: 'bold',
+            color: '#7f1d1d'
+        }).setOrigin(0.5);
+        modalContainer.add(titleText);
+
+        let descText = this.add.text(0, 45, mission.desc, {
+            fontFamily: 'Kanit, sans-serif',
+            fontSize: '20px',
+            color: '#334155',
+            align: 'center',
+            lineSpacing: 8
+        }).setOrigin(0.5);
+        modalContainer.add(descText);
+
+        this.tweens.add({
+            targets: overlay,
+            alpha: 1,
+            duration: 300,
+            ease: 'Quad.easeOut'
+        });
+
+        this.tweens.add({
+            targets: modalContainer,
+            alpha: 1,
+            scale: 1,
+            duration: 400,
+            ease: 'Back.easeOut'
+        });
+
+        let btnStart = createChoiceButton(this, 500, 420, 'เริ่มภารกิจ (START)', () => {
+            btnStart.container.destroy();
+            
+            this.tweens.add({
+                targets: modalContainer,
+                alpha: 0,
+                scale: 0.85,
+                duration: 250,
+                ease: 'Quad.easeIn',
+                onComplete: () => {
+                    modalContainer.destroy();
+                }
+            });
+
+            this.tweens.add({
+                targets: overlay,
+                alpha: 0,
+                duration: 200,
+                ease: 'Quad.easeIn',
+                onComplete: () => {
+                    overlay.destroy();
+                    this.gameState.isAnimating = false;
+                    if (onComplete) onComplete();
+                }
+            });
+        }, 260, 60, '24px');
+        
+        btnStart.container.setDepth(62);
+        btnStart.container.alpha = 0;
+        
+        this.tweens.add({
+            targets: btnStart.container,
+            alpha: 1,
+            duration: 400,
+            delay: 150
+        });
+    }
+
+    getBaseY() {
+        let stageIdx = this.gameState.currentStageIdx;
+        if (stageIdx === 1) {
+            return 450; // Stage 2
+        } else if (stageIdx === 0 || stageIdx === 2) {
+            return 440; // Stage 1, 3
+        }
+        return 420; // Stage 4, 5, 6
+    }
+
+    triggerLuckyStartAnimation(onComplete) {
+        if (this.gameState.currentStageIdx !== 0) {
+            // Only play start animation on Stage 1
+            if (onComplete) onComplete();
+            return;
+        }
+
+        this.gameState.isAnimating = true;
+        let floorY = this.getBaseY();
+        
+        // Spawn Lucky at left offscreen
+        let lucky = this.add.sprite(-100, floorY, 'luacky_escape_1').setOrigin(0.5, 1).setScale(0.5).setDepth(3);
+        lucky.play('luacky_escape_anim');
+
+        // Run across the screen to the right
+        this.tweens.add({
+            targets: lucky,
+            x: 1100,
+            duration: 2200,
+            ease: 'Linear',
+            onComplete: () => {
+                lucky.destroy();
+                this.gameState.isAnimating = false;
+                if (onComplete) onComplete();
+            }
+        });
+    }
+
+    triggerLuckyEndAnimation(onComplete) {
+        this.gameState.isAnimating = true;
+        let floorY = this.getBaseY();
+        let isStage6 = (this.gameState.currentStageIdx === 5);
+
+        // Spawn Lucky at right offscreen
+        let lucky = this.add.sprite(1100, floorY, 'lucky_run_1').setOrigin(0.5, 1).setScale(0.5).setDepth(3);
+        lucky.setFlipX(false); // Face left (original sprite faces left)
+        lucky.play('lucky_run_anim');
+
+        // Step 1: Run to x = 230
+        this.tweens.add({
+            targets: lucky,
+            x: 230,
+            duration: 1200,
+            ease: 'Power1.easeOut',
+            onComplete: () => {
+                // Step 2: Play stand animation
+                lucky.setFlipX(false); // Face left
+                lucky.play('lucky_stand_anim');
+
+                // Small bark bubble
+                SoundEffects.playBark();
+                let barkBubble = this.add.text(230, floorY - 90, 'โฮ่ง! (Lucky!)', {
+                    fontFamily: 'Kanit, sans-serif',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: '#ffffff',
+                    backgroundColor: '#1e293b',
+                    padding: { x: 8, y: 4 },
+                    borderRadius: 4
+                }).setOrigin(0.5).setDepth(4);
+                
+                barkBubble.setScale(0);
+                this.tweens.add({
+                    targets: barkBubble,
+                    scale: 1,
+                    duration: 200,
+                    ease: 'Back.easeOut'
+                });
+
+                if (isStage6) {
+                    // Stage 6: Stand still forever next to player
+                    this.time.delayedCall(2500, () => {
+                        this.tweens.add({
+                            targets: barkBubble,
+                            alpha: 0,
+                            scale: 0.5,
+                            duration: 200,
+                            onComplete: () => barkBubble.destroy()
+                        });
+                        this.gameState.isAnimating = false;
+                        if (onComplete) onComplete();
+                    });
+                } else {
+                    // Stages 1-5: Wait 1.5 seconds, then run away to the right, and player runs after him
+                    this.time.delayedCall(1500, () => {
+                        this.tweens.add({
+                            targets: barkBubble,
+                            alpha: 0,
+                            scale: 0.5,
+                            duration: 200,
+                            onComplete: () => barkBubble.destroy()
+                        });
+
+                        // Face right and run away
+                        lucky.setFlipX(false); // Original sprite in luacky-escape already faces right
+                        lucky.play('luacky_escape_anim');
+
+                        // Lucky runs to 1100
+                        this.tweens.add({
+                            targets: lucky,
+                            x: 1100,
+                            duration: 1500,
+                            ease: 'Power1.easeIn',
+                            onComplete: () => {
+                                lucky.destroy();
+                            }
+                        });
+
+                        // Player chases Lucky after the dog runs off first (600ms delay)
+                        this.time.delayedCall(600, () => {
+                            if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
+                            if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
+                            this.gameState.player.play('player_run_anim');
+                            this.tweens.add({
+                                targets: this.gameState.player,
+                                x: 1100,
+                                duration: 1100,
+                                ease: 'Power1.easeIn',
+                                onComplete: () => {
+                                    this.gameState.isAnimating = false;
+                                    if (onComplete) onComplete();
+                                }
+                            });
+                        });
+                    });
+                }
+            }
+        });
     }
 
     generateBlankQuiz(quiz) {
@@ -868,31 +2166,9 @@ class GamePlay extends Phaser.Scene {
     nextQuiz() {
         let currentStageData = this.gameState.vocabData[this.gameState.currentStageIdx];
         
-        // --- CHECK STAGE PROGRESS & BOSS SPAWN ---
-        if (!this.gameState.isBossFight && this.gameState.scoreInStage >= currentStageData.wordsToPass) {
-            // Trigger Boss Fight
-            this.gameState.isBossFight = true;
-            this.gameState.bossHp = this.gameState.bossMaxHp;
-            
-            let bossWarning = this.add.text(500, 300, 'ระวัง! บอสผีร้ายทรงพลัง!', { 
-                fontFamily: 'Kanit, sans-serif', fontSize: '60px', fontWeight: 'bold', color: '#ff0000', stroke: '#ffffff', strokeThickness: 8 
-            }).setOrigin(0.5).setDepth(20);
-            
-            // Flash red
-            let flash = this.add.graphics().fillStyle(0xff0000, 0.4).fillRect(0,0,1000,600).setDepth(19);
-            this.tweens.add({ targets: flash, alpha: 0, duration: 200, yoyo: true, repeat: 3, onComplete: () => flash.destroy() });
-            
-            this.tweens.add({
-                targets: bossWarning, scale: 1.15, alpha: 0, duration: 2500, ease: 'Power2',
-                onComplete: () => bossWarning.destroy()
-            });
-            
-            this.gameState.stageText.setText('BOSS: ' + currentStageData.stageName);
-            this.gameState.stageText.setColor('#ff3333');
-        } else if (this.gameState.isBossFight && this.gameState.bossHp <= 0) {
-            // Defeated Boss -> Next Stage transition
+        if (this.gameState.isFinalRound && this.gameState.finalRoundWave === 3 && this.gameState.finalRoundEnemies.length === 0) {
             this.gameState.isAnimating = true; 
-            this.gameState.isBossFight = false;
+            this.gameState.isFinalRound = false;
             this.gameState.scoreInStage = 0;
 
             // Unlock next stage!
@@ -902,53 +2178,82 @@ class GamePlay extends Phaser.Scene {
                 localStorage.setItem('unlockedStageIdx', nextStageIdx);
             }
 
-            this.gameState.currentStageIdx++;
-            
-            if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
-                this.gameState.currentStageIdx = 0; // Loop back
-            }
-            this.gameState.quizQueue = []; 
+            if (this.gameState.currentStageIdx === 5) {
+                // Stage 6 complete -> Trigger Lucky End (stands still) -> Transition to EndCutsceneScene
+                this.triggerLuckyEndAnimation(() => {
+                    this.scene.start('EndCutsceneScene', { score: this.gameState.coins });
+                });
+            } else {
+                // Stage 1-5 complete -> Trigger Lucky End (runs off, Player runs after him) -> Transition directly to next stage
+                this.triggerLuckyEndAnimation(() => {
+                    SoundEffects.playNextStage();
+                    this.gameState.currentStageIdx++;
+                    if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
+                        this.gameState.currentStageIdx = 0;
+                    }
+                    this.gameState.quizQueue = [];
 
-            let nsText = this.add.text(500, 300, 'ผ่านด่านสำเร็จ!', { fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '80px', color: '#00ff00', stroke: '#000000', strokeThickness: 8 }).setOrigin(0.5).setDepth(20);
-            this.tweens.add({
-                targets: nsText, y: 200, alpha: 0, duration: 2000,
-                onComplete: () => nsText.destroy()
-            });
+                    // Fade camera out and transition
+                    this.cameras.main.fade(800, 0, 0, 0, false, (camera, progress) => {
+                        if (progress === 1) {
+                            let bgIndex = this.gameState.currentStageIdx % 6;
+                            this.gameState.bg.setTexture('lvl_bg' + bgIndex);
+                            
+                            let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
+                            this.gameState.stageText.setText(stageName);
+                            this.gameState.stageText.setColor('#ffffff');
 
-            // Player slides off-screen right
-            this.gameState.playerIdleTween.pause();
-            this.gameState.player.play('player_run_anim');
-            this.tweens.add({
-                targets: this.gameState.player,
-                x: 1100,
-                duration: 1200,
-                ease: 'Power2.easeIn',
-                onComplete: () => {
-                    // Update Background
-                    let bgIndex = this.gameState.currentStageIdx % 6; 
-                    this.gameState.bg.setTexture('lvl_bg' + bgIndex);
-                    
-                    let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
-                    this.gameState.stageText.setText(stageName);
-                    this.gameState.stageText.setColor('#ffffff');
+                            // Spawn player at left offscreen
+                            this.gameState.player.x = -100;
+                            this.gameState.player.y = this.getBaseY();
+                            
+                            this.cameras.main.fadeIn(800, 0, 0, 0);
 
-                    // Player spawns off-screen left and moves back to x = 130
-                    this.gameState.player.x = -100;
-                    this.gameState.player.y = 425;
-                    this.tweens.add({
-                        targets: this.gameState.player,
-                        x: 130,
-                        duration: 1000,
-                        ease: 'Power2.easeOut',
-                        onComplete: () => {
-                            this.gameState.player.play('player_idle_anim');
-                            this.gameState.playerIdleTween.resume();
-                            this.gameState.isAnimating = false;
-                            this.nextQuiz();
+                            this.tweens.add({
+                                targets: this.gameState.player,
+                                x: 130,
+                                duration: 1000,
+                                ease: 'Power2.easeOut',
+                                onComplete: () => {
+                                    this.gameState.player.play('player_idle_anim');
+                                    if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                    this.triggerLuckyStartAnimation(() => {
+                                        this.gameState.isAnimating = false;
+                                        this.nextQuiz();
+                                    });
+                                }
+                            });
                         }
                     });
+                });
+            }
+            return;
+        }
+
+        // --- CHECK STAGE PROGRESS & FINAL ROUND SPAWN ---
+        if (!this.gameState.isFinalRound && this.gameState.scoreInStage >= currentStageData.wordsToPass) {
+            this.gameState.isFinalRound = true;
+            this.gameState.finalRoundWave = 1;
+            this.gameState.finalRoundEnemies = [];
+
+            let finalWarning = this.add.text(500, 300, 'รอบสุดท้าย! เผชิญหน้าฝูงศัตรู!', { 
+                fontFamily: 'Kanit, sans-serif', fontSize: '56px', fontWeight: 'bold', color: '#ff9900', stroke: '#ffffff', strokeThickness: 8 
+            }).setOrigin(0.5).setDepth(20);
+            
+            // Flash orange
+            let flash = this.add.graphics().fillStyle(0xffaa00, 0.4).fillRect(0,0,1000,600).setDepth(19);
+            this.tweens.add({ targets: flash, alpha: 0, duration: 200, yoyo: true, repeat: 3, onComplete: () => flash.destroy() });
+            
+            this.tweens.add({
+                targets: finalWarning, scale: 1.15, alpha: 0, duration: 2500, ease: 'Power2',
+                onComplete: () => {
+                    finalWarning.destroy();
+                    this.spawnFinalRoundWave();
                 }
             });
+            
+            this.gameState.stageText.setText(`FINAL ROUND: Wave 1/3 (ศัตรูเหลือ: 0)`);
+            this.gameState.stageText.setColor('#ff9900');
             return;
         }
 
@@ -1030,101 +2335,293 @@ class GamePlay extends Phaser.Scene {
             this.gameState.correctBtn = choices.findIndex(c => c.isCorrect) + 1;
         }
 
-        if (this.gameState.zombie) {
-            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
-            if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
-            if (this.gameState.zombieTrail) this.gameState.zombieTrail.destroy();
-            this.gameState.zombie.destroy();
-        }
-        
-        // Spawn Enemy (Random pick: ghost-girl, ghost-water, skeleton; except boss)
-        if (this.gameState.isBossFight) {
-            this.gameState.currentEnemyType = 'boss';
-        } else {
-            let enemyKeys;
-            if (this.gameState.currentStageIdx === 2) {
-                enemyKeys = ['apple', 'banana', 'coconut', 'orange', 'watermelon'];
-            } else {
-                enemyKeys = ['dog', 'duck', 'lion', 'elephant', 'pig'];
-            }
-            this.gameState.currentEnemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
-        }
+        if (this.gameState.isFinalRound) {
+            // Update stageText with remaining enemies
+            this.gameState.stageText.setText(`FINAL ROUND: Wave ${this.gameState.finalRoundWave}/3 (ศัตรูเหลือ: ${this.gameState.finalRoundEnemies.length})`);
+            this.gameState.stageText.setColor('#ff9900');
 
-        let enemyType = this.gameState.currentEnemyType;
-        let spawnY = (enemyType === 'boss') ? 310 : 425;
-
-        const config = ENEMY_TYPES_DATA[enemyType];
-        let baseScale = (enemyType === 'boss') ? (config.scale || 1.0) : 0.9;
-        this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, (enemyType === 'boss') ? 0.5 : 1).setDepth(2);
-        this.gameState.zombie.setScale(baseScale);
-        this.gameState.zombie.setFlipX(false);
-        this.gameState.zombie.play(`${enemyType}_walk_anim`);
-
-        // Reset player to idle position at far left
-        if (this.gameState.player && !this.gameState.isAnimating) {
-            this.gameState.player.x = 130;
-            this.gameState.player.y = 425;
-            this.gameState.player.setScale(0.6);
-        }
-
-        // Ghostly particle trail (blue/cyan ethereal glow using dynamic glow texture)
-        this.gameState.zombieTrail = this.add.particles(950, spawnY, 'particle_glow', {
-            scale: { start: 0.25, end: 0 },
-            speedY: { min: -20, max: 20 },
-            speedX: { min: 30, max: 100 },
-            lifespan: 600,
-            alpha: { start: 0.5, end: 0 },
-            tint: 0x88ccff, // Icy ghost blue glow
-            blendMode: 'ADD',
-            frequency: 60
-        }).setDepth(1);
-
-        // Enemy walks straight in a line (no floating up and down)
-        this.gameState.zombieFloatTween = null;
-
-        // Boss HP Bar visual above head
-        if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true);
-        if (this.gameState.isBossFight) {
-            this.gameState.bossHpGroup = this.add.group();
-            let bHpBg = this.add.graphics();
-            bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -140, 100, 10);
-            let bHpFill = this.add.graphics();
-            bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -140, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
-            
-            let hpContainer = this.add.container(this.gameState.zombie.x, this.gameState.zombie.y);
-            hpContainer.add([bHpBg, bHpFill]);
-            this.gameState.bossHpGroup.add(hpContainer);
-            this.gameState.zombie.hpContainer = hpContainer;
-        }
-        
-        // Ghost floats/flies towards player
-        let walkDuration = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
-        if (this.gameState.isBossFight) walkDuration *= 1.4;
-        
-        this.gameState.zombieMoveTween = this.tweens.add({
-            targets: this.gameState.zombie,
-            x: 210, 
-            duration: walkDuration,
-            onUpdate: () => {
-                if(this.gameState.zombie) {
-                    if (this.gameState.zombie.hpContainer) {
-                        this.gameState.zombie.hpContainer.x = this.gameState.zombie.x;
-                        this.gameState.zombie.hpContainer.y = this.gameState.zombie.y;
+            // Resume walking tweens for all final round enemies
+            if (this.gameState.finalRoundEnemies) {
+                this.gameState.finalRoundEnemies.forEach((enemy) => {
+                    if (enemy && enemy.moveTween) {
+                        enemy.moveTween.resume();
                     }
-                    if (this.gameState.zombieTrail) {
-                        this.gameState.zombieTrail.setPosition(this.gameState.zombie.x + 30, this.gameState.zombie.y);
+                });
+            }
+        } else {
+            if (this.gameState.zombie) {
+                if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+                if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.stop();
+                if (this.gameState.zombieTrail) this.gameState.zombieTrail.destroy();
+                this.gameState.zombie.destroy();
+            }
+            
+            // Spawn Enemy (Random pick: ghost-girl, ghost-water, skeleton; except boss)
+            if (this.gameState.isBossFight) {
+                this.gameState.currentEnemyType = 'boss';
+            } else {
+                let enemyKeys;
+                if (this.gameState.currentStageIdx === 1) {
+                    enemyKeys = ['brain', 'heart', 'nose'];
+                } else if (this.gameState.currentStageIdx === 2) {
+                    enemyKeys = ['apple', 'banana', 'coconut', 'orange', 'watermelon'];
+                } else if (this.gameState.currentStageIdx === 3) {
+                    enemyKeys = ['glass-tube', 'scientist', 'slime'];
+                } else if (this.gameState.currentStageIdx === 4) {
+                    enemyKeys = ['VGA', 'keyboard', 'mouse', 'ram'];
+                } else if (this.gameState.currentStageIdx === 5) {
+                    enemyKeys = ['family', 'familytwo', 'ghostgirl'];
+                } else {
+                    enemyKeys = ['dog', 'duck', 'lion', 'elephant', 'pig'];
+                }
+                this.gameState.currentEnemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+            }
+
+            let enemyType = this.gameState.currentEnemyType;
+            const config = ENEMY_TYPES_DATA[enemyType];
+            let spawnY = (enemyType === 'boss') ? 310 : (this.getBaseY() + (config.yOffset || 0));
+
+            let baseScale = (enemyType === 'boss') ? (config.scale || 1.0) : 0.9;
+            this.gameState.zombie = this.add.sprite(950, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, (enemyType === 'boss') ? 0.5 : 1).setDepth(2);
+            this.gameState.zombie.setScale(baseScale);
+            this.gameState.zombie.setFlipX(false);
+            this.gameState.zombie.play(`${enemyType}_walk_anim`);
+
+            // Reset player to idle position at far left
+            if (this.gameState.player && !this.gameState.isAnimating) {
+                this.gameState.player.x = 130;
+                this.gameState.player.y = this.getBaseY();
+                this.gameState.player.setScale(0.6);
+            }
+
+            // Ghostly particle trail (blue/cyan ethereal glow using dynamic glow texture)
+            this.gameState.zombieTrail = this.add.particles(950, spawnY, 'particle_glow', {
+                scale: { start: 0.25, end: 0 },
+                speedY: { min: -20, max: 20 },
+                speedX: { min: 30, max: 100 },
+                lifespan: 600,
+                alpha: { start: 0.5, end: 0 },
+                tint: 0x88ccff, // Icy ghost blue glow
+                blendMode: 'ADD',
+                frequency: 60
+            }).setDepth(1);
+
+            // Floating tween for floating enemies
+            if (config.float) {
+                this.gameState.zombieFloatTween = this.tweens.add({
+                    targets: this.gameState.zombie,
+                    y: spawnY - 15,
+                    duration: 1000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            } else {
+                this.gameState.zombieFloatTween = null;
+            }
+
+            // Boss HP Bar visual above head
+            if (this.gameState.bossHpGroup) this.gameState.bossHpGroup.destroy(true);
+            if (this.gameState.isBossFight) {
+                this.gameState.bossHpGroup = this.add.group();
+                let bHpBg = this.add.graphics();
+                bHpBg.fillStyle(0x000000, 0.8).fillRect(-50, -140, 100, 10);
+                let bHpFill = this.add.graphics();
+                bHpFill.fillStyle(0xff0000, 1).fillRect(-50, -140, (this.gameState.bossHp / this.gameState.bossMaxHp) * 100, 10);
+                
+                let hpContainer = this.add.container(this.gameState.zombie.x, this.gameState.zombie.y);
+                hpContainer.add([bHpBg, bHpFill]);
+                this.gameState.bossHpGroup.add(hpContainer);
+                this.gameState.zombie.hpContainer = hpContainer;
+            }
+            
+            // Ghost floats/flies towards player
+            let walkDuration = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
+            if (this.gameState.isBossFight) walkDuration *= 1.4;
+            
+            this.gameState.zombieMoveTween = this.tweens.add({
+                targets: this.gameState.zombie,
+                x: 210, 
+                duration: walkDuration,
+                onUpdate: () => {
+                    if(this.gameState.zombie) {
+                        if (this.gameState.zombie.hpContainer) {
+                            this.gameState.zombie.hpContainer.x = this.gameState.zombie.x;
+                            this.gameState.zombie.hpContainer.y = this.gameState.zombie.y;
+                        }
+                        if (this.gameState.zombieTrail) {
+                            this.gameState.zombieTrail.setPosition(this.gameState.zombie.x + 30, this.gameState.zombie.y);
+                        }
+                    }
+                },
+                onComplete: () => {
+                    if (!this.gameState.isAnimating && !this.gameState.isGameOver) {
+                        this.gameState.isAnimating = true;
+
+                        this.performEnemyAttack(null, () => {
+                            if (this.gameState.isBossFight) {
+                                this.gameState.hp--;
+                                this.updateHpBar();
+                            }
+                            this.playerTakeDamage();
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    cancelAllEnemyAttacks() {
+        let enemies = this.gameState.isFinalRound ? (this.gameState.finalRoundEnemies || []) : [this.gameState.zombie];
+        enemies.forEach(enemy => {
+            if (!enemy) return;
+            let enemyType = enemy.enemyType || this.gameState.currentEnemyType || 'ghost-girl';
+            
+            // Stop attack/lunge/retreat tweens, pause walking tweens
+            if (enemy.moveTween) enemy.moveTween.pause();
+            if (enemy.lungeTween) enemy.lungeTween.stop();
+            if (enemy.retreatTween) enemy.retreatTween.stop();
+            if (enemy.floatTween) enemy.floatTween.pause();
+            
+            // Remove attack animation completion listeners
+            enemy.off(`animationcomplete-${enemyType}_attack_anim`);
+            
+            // Revert back to walking animation
+            enemy.play(`${enemyType}_walk_anim`);
+        });
+
+        // Also pause normal round zombie move tween
+        if (!this.gameState.isFinalRound) {
+            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.pause();
+        }
+    }
+
+    pauseAllEnemyMovement() {
+        if (this.gameState.isFinalRound) {
+            // Freeze only the targeted foremost enemy
+            let foremostEnemy = this.gameState.zombie;
+            if (foremostEnemy) {
+                if (foremostEnemy.moveTween) foremostEnemy.moveTween.pause();
+                if (foremostEnemy.lungeTween) foremostEnemy.lungeTween.stop();
+                if (foremostEnemy.retreatTween) foremostEnemy.retreatTween.stop();
+            }
+        } else {
+            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.pause();
+            if (this.gameState.zombie && this.gameState.zombie.lungeTween) this.gameState.zombie.lungeTween.stop();
+            if (this.gameState.zombie && this.gameState.zombie.retreatTween) this.gameState.zombie.retreatTween.stop();
+        }
+    }
+
+    spawnFinalRoundWave() {
+        // Clear any old enemies
+        if (this.gameState.finalRoundEnemies) {
+            this.gameState.finalRoundEnemies.forEach(enemy => {
+                if (enemy) {
+                    if (enemy.moveTween) enemy.moveTween.stop();
+                    if (enemy.floatTween) enemy.floatTween.stop();
+                    if (enemy.trail) enemy.trail.destroy();
+                    enemy.destroy();
+                }
+            });
+        }
+        this.gameState.finalRoundEnemies = [];
+
+        let numEnemies = Phaser.Math.Between(2, 4);
+        
+        let enemyKeys;
+        if (this.gameState.currentStageIdx === 1) {
+            enemyKeys = ['brain', 'heart', 'nose'];
+        } else if (this.gameState.currentStageIdx === 2) {
+            enemyKeys = ['apple', 'banana', 'coconut', 'orange', 'watermelon'];
+        } else if (this.gameState.currentStageIdx === 3) {
+            enemyKeys = ['glass-tube', 'scientist', 'slime'];
+        } else if (this.gameState.currentStageIdx === 4) {
+            enemyKeys = ['VGA', 'keyboard', 'mouse', 'ram'];
+        } else if (this.gameState.currentStageIdx === 5) {
+            enemyKeys = ['family', 'familytwo', 'ghostgirl'];
+        } else {
+            enemyKeys = ['dog', 'duck', 'lion', 'elephant', 'pig'];
+        }
+
+        let walkDuration = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
+
+        for (let i = 0; i < numEnemies; i++) {
+            let enemyType = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+            const config = ENEMY_TYPES_DATA[enemyType];
+            let spawnY = this.getBaseY() + (config.yOffset || 0);
+            let startX = 950 + i * 110; // Stagger spacing
+
+            let baseScale = 0.9;
+            
+            let enemySprite = this.add.sprite(startX, spawnY, `${enemyType}_walk_1`).setOrigin(0.5, 1).setDepth(2);
+            enemySprite.setScale(baseScale);
+            enemySprite.setFlipX(false);
+            enemySprite.play(`${enemyType}_walk_anim`);
+            enemySprite.enemyType = enemyType;
+
+            // Ghostly particle trail
+            enemySprite.trail = this.add.particles(startX, spawnY, 'particle_glow', {
+                scale: { start: 0.25, end: 0 },
+                speedY: { min: -20, max: 20 },
+                speedX: { min: 30, max: 100 },
+                lifespan: 600,
+                alpha: { start: 0.5, end: 0 },
+                tint: 0x88ccff, // Icy ghost blue glow
+                blendMode: 'ADD',
+                frequency: 60
+            }).setDepth(1);
+
+            // Movement tween
+            this.startEnemyMovement(enemySprite, walkDuration);
+
+            // Floating tween for floating enemies
+            if (config.float) {
+                enemySprite.floatTween = this.tweens.add({
+                    targets: enemySprite,
+                    y: spawnY - 15,
+                    duration: 1000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            }
+
+            this.gameState.finalRoundEnemies.push(enemySprite);
+        }
+
+        // Set the active zombie to be the foremost enemy
+        this.gameState.zombie = this.gameState.finalRoundEnemies[0];
+
+        // Trigger the next question
+        this.nextQuiz();
+    }
+
+    startEnemyMovement(enemySprite, walkDuration) {
+        if (!enemySprite || !enemySprite.active) return;
+        
+        // Calculate duration relative to distance to maintain constant speed
+        // Reference distance is 950 - 210 = 740
+        let currentDist = enemySprite.x - 210;
+        let adjustedDuration = walkDuration * (currentDist / 740);
+        if (adjustedDuration <= 0) adjustedDuration = 100;
+
+        enemySprite.moveTween = this.tweens.add({
+            targets: enemySprite,
+            x: 210,
+            duration: adjustedDuration,
+            onUpdate: () => {
+                if (enemySprite && enemySprite.active) {
+                    if (enemySprite.trail) {
+                        enemySprite.trail.setPosition(enemySprite.x + 30, enemySprite.y);
                     }
                 }
             },
             onComplete: () => {
                 if (!this.gameState.isAnimating && !this.gameState.isGameOver) {
-                    this.gameState.isAnimating = true;
-
-                    this.performEnemyAttack(() => {
-                        if (this.gameState.isBossFight) {
-                            this.gameState.hp--;
-                            this.updateHpBar();
-                        }
+                    this.performEnemyAttack(enemySprite, () => {
+                        this.gameState.isAnimating = true; // Block input only when hit lands!
+                        this.gameState.hp--;
+                        this.updateHpBar();
                         this.playerTakeDamage();
                     });
                 }
@@ -1132,12 +2629,89 @@ class GamePlay extends Phaser.Scene {
         });
     }
 
+    restartEnemyMovement(enemySprite) {
+        if (!enemySprite || !enemySprite.active) return;
+        if (enemySprite.moveTween) {
+            enemySprite.moveTween.stop();
+        }
+        let walkDuration = parseInt(localStorage.getItem('zombieDifficulty')) || 10000;
+        this.startEnemyMovement(enemySprite, walkDuration);
+    }
+
     dealAttackDamage() {
         if (this.gameState.isGameOver) return;
+
+        SoundEffects.playSlash();
 
         // Flash enemy white for damage indication
         this.gameState.zombie.setTintFill(0xffffff);
         setTimeout(() => { if (this.gameState.zombie) this.gameState.zombie.clearTint(); }, 150);
+
+        if (this.gameState.isFinalRound) {
+            let currentEnemy = this.gameState.zombie;
+            if (currentEnemy) {
+                if (currentEnemy.moveTween) currentEnemy.moveTween.stop();
+                if (currentEnemy.floatTween) currentEnemy.floatTween.stop();
+                if (currentEnemy.trail) {
+                    currentEnemy.trail.destroy();
+                    currentEnemy.trail = null;
+                }
+
+                // Play death fadeout
+                this.tweens.add({
+                    targets: currentEnemy,
+                    alpha: 0,
+                    scale: 0,
+                    duration: 350,
+                    ease: 'Quad.easeOut',
+                    onComplete: () => {
+                        currentEnemy.destroy();
+                    }
+                });
+
+                // Remove from finalRoundEnemies array
+                this.gameState.finalRoundEnemies = this.gameState.finalRoundEnemies.filter(e => e !== currentEnemy);
+                this.gameState.coins += 15;
+                this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+                SoundEffects.playCoin();
+            }
+
+            if (this.gameState.finalRoundEnemies.length > 0) {
+                // Set the next foremost enemy as the target
+                this.gameState.zombie = this.gameState.finalRoundEnemies[0];
+                setTimeout(() => { 
+                    this.gameState.isAnimating = false;
+                    this.nextQuiz(); 
+                }, 500);
+            } else {
+                // Wave is cleared!
+                if (this.gameState.finalRoundWave < 3) {
+                    this.gameState.finalRoundWave++;
+                    
+                    let waveText = this.add.text(500, 300, `รอบที่ ${this.gameState.finalRoundWave - 1} สำเร็จ!`, {
+                        fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '60px', color: '#ffcc00', stroke: '#000000', strokeThickness: 8
+                    }).setOrigin(0.5).setDepth(20);
+                    
+                    this.tweens.add({
+                        targets: waveText,
+                        y: 200,
+                        alpha: 0,
+                        duration: 1500,
+                        onComplete: () => {
+                            waveText.destroy();
+                            // Spawn next wave
+                            this.spawnFinalRoundWave();
+                        }
+                    });
+                } else {
+                    // All waves complete, trigger stage pass
+                    setTimeout(() => {
+                        this.nextQuiz();
+                    }, 500);
+                }
+            }
+            return;
+        }
 
         if (this.gameState.isBossFight) {
             this.gameState.bossHp--;
@@ -1193,6 +2767,7 @@ class GamePlay extends Phaser.Scene {
                             }
                             this.gameState.coins += 50; 
                             this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+                            SoundEffects.playCoin();
                             this.nextQuiz();
                         }
                     });
@@ -1212,18 +2787,21 @@ class GamePlay extends Phaser.Scene {
                 this.gameState.isAnimating = true;
                 this.gameState.coins += 50;
                 this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+                SoundEffects.playCoin();
 
                 // Align boss to the ground during death animation
                 this.gameState.zombie.setOrigin(0.5, 1);
-                this.gameState.zombie.y = 425;
+                this.gameState.zombie.y = this.getBaseY();
 
                 // Play boss dead animation
                 this.gameState.zombie.play('boss_dead_anim');
                 
-                // Once dead animation completes, show Mission Complete screen after 1 second
+                // Once dead animation completes, trigger Lucky end-stage animation and then transition to EndCutsceneScene
                 this.gameState.zombie.once('animationcomplete-boss_dead_anim', () => {
-                    this.time.delayedCall(1000, () => {
-                        this.showMissionComplete();
+                    this.time.delayedCall(500, () => {
+                        this.triggerLuckyEndAnimation(() => {
+                            this.scene.start('EndCutsceneScene', { score: this.gameState.coins });
+                        });
                     });
                 });
                 return;
@@ -1252,6 +2830,7 @@ class GamePlay extends Phaser.Scene {
                 }
                 
                 this.gameState.scoreText.setText('SCORE: ' + this.gameState.coins);
+                SoundEffects.playCoin();
                 this.nextQuiz();
             }
         });
@@ -1264,8 +2843,9 @@ class GamePlay extends Phaser.Scene {
         let qData = this.gameState.currentQuizData;
 
         if (this.gameState.correctBtn === choiceNumber) {
-            // Correct answer
-            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+            SoundEffects.playCorrect();
+            // Correct answer - cancel all enemy attacks immediately!
+            this.cancelAllEnemyAttacks();
 
             let triggerAttack = () => {
                 let attackStyle = Math.floor(Math.random() * 3);
@@ -1339,97 +2919,109 @@ class GamePlay extends Phaser.Scene {
             }
         } else {
             // Wrong answer
-            if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
-
-            this.performEnemyAttack(() => {
-                if (this.gameState.isBossFight) {
-                    this.gameState.hp--;
-                    this.updateHpBar();
+            SoundEffects.playIncorrect();
+            if (this.gameState.isFinalRound) {
+                // Only pause the foremost enemy that will lunge and attack
+                let foremostEnemy = this.gameState.zombie;
+                if (foremostEnemy && foremostEnemy.moveTween) {
+                    foremostEnemy.moveTween.pause();
                 }
+            } else {
+                if (this.gameState.zombieMoveTween) this.gameState.zombieMoveTween.stop();
+            }
+
+            this.performEnemyAttack(this.gameState.zombie, () => {
                 this.playerTakeDamage();
             });
         }
     }
 
-    performEnemyAttack(onAttackHit) {
-        if (!this.gameState.zombie || this.gameState.isGameOver) return;
+    performEnemyAttack(enemy, onAttackHit) {
+        if (!enemy) enemy = this.gameState.zombie;
+        if (!enemy || this.gameState.isGameOver) return;
+        SoundEffects.playEnemyAttack();
 
-        let enemyType = this.gameState.currentEnemyType || 'ghost-girl';
-
-
+        let enemyType = enemy.enemyType || this.gameState.currentEnemyType || 'ghost-girl';
 
         const config = ENEMY_TYPES_DATA[enemyType];
         if (!config) return;
 
-        if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.pause();
+        if (enemy.floatTween) enemy.floatTween.pause();
+        else if (this.gameState.zombieFloatTween && enemy === this.gameState.zombie) this.gameState.zombieFloatTween.pause();
 
         if (enemyType === 'boss') {
             // Boss: show random attack frame (static) then lunge
             let randAttackIdx = Math.floor(Math.random() * config.attackCount) + 1;
-            this.gameState.zombie.anims.stop();
-            this.gameState.zombie.setTexture(`${enemyType}_attack_${randAttackIdx}`);
-            this._doEnemyLunge(enemyType, onAttackHit);
+            enemy.anims.stop();
+            enemy.setTexture(`${enemyType}_attack_${randAttackIdx}`);
+            this._doEnemyLunge(enemy, enemyType, onAttackHit);
         } else {
             // Normal enemy: play full attack animation then lunge
-            this.gameState.zombie.play(`${enemyType}_attack_anim`);
-            this.gameState.zombie.once(`animationcomplete-${enemyType}_attack_anim`, () => {
-                if (!this.gameState.zombie || this.gameState.isGameOver) return;
-                this._doEnemyLunge(enemyType, onAttackHit);
+            enemy.play(`${enemyType}_attack_anim`);
+            enemy.once(`animationcomplete-${enemyType}_attack_anim`, () => {
+                if (!enemy || this.gameState.isGameOver) return;
+                this._doEnemyLunge(enemy, enemyType, onAttackHit);
             });
         }
     }
 
-    _doEnemyLunge(enemyType, onAttackHit) {
-        if (!this.gameState.zombie || this.gameState.isGameOver) return;
+    _doEnemyLunge(enemy, enemyType, onAttackHit) {
+        if (!enemy) enemy = this.gameState.zombie;
+        if (!enemy || this.gameState.isGameOver) return;
 
         // Fail red flash screen
         let failFlash = this.add.graphics().fillStyle(0xcc0000, 0.5).fillRect(0, 0, 1000, 600).setDepth(20);
         this.tweens.add({ targets: failFlash, alpha: 0, duration: 300, onComplete: () => failFlash.destroy() });
 
-        let targetY = (enemyType === 'boss') ? 330 : 425;
-        let retreatY = (enemyType === 'boss') ? 310 : 425;
+        let targetY = (enemyType === 'boss') ? 330 : (this.getBaseY() + (ENEMY_TYPES_DATA[enemyType]?.yOffset || 0));
+        let retreatY = (enemyType === 'boss') ? 310 : (this.getBaseY() + (ENEMY_TYPES_DATA[enemyType]?.yOffset || 0));
 
         // Lunge forward to hit player
-        let startX = this.gameState.zombie.x;
-        this.tweens.add({
-            targets: this.gameState.zombie,
+        let startX = enemy.x;
+        enemy.lungeTween = this.tweens.add({
+            targets: enemy,
             x: this.gameState.player.x + 50,
             y: targetY,
             angle: -15,
             duration: 180,
             ease: 'Cubic.easeOut',
             onComplete: () => {
-                if (this.gameState.zombie) this.gameState.zombie.setAngle(0);
+                if (enemy) enemy.setAngle(0);
 
                 if (onAttackHit) onAttackHit();
 
                 // Retreat back after hitting player
-                if (this.gameState.zombie && !this.gameState.isGameOver) {
-                    this.tweens.add({
-                        targets: this.gameState.zombie,
+                if (enemy && !this.gameState.isGameOver) {
+                    enemy.retreatTween = this.tweens.add({
+                        targets: enemy,
                         x: Math.max(startX, 280),
                         y: retreatY,
                         duration: 250,
                         ease: 'Quad.easeIn',
                         onComplete: () => {
-                            if (this.gameState.zombie && !this.gameState.isGameOver) {
-                                this.gameState.zombie.play(`${enemyType}_walk_anim`);
-                                if (this.gameState.zombieFloatTween) this.gameState.zombieFloatTween.resume();
+                            if (enemy && !this.gameState.isGameOver) {
+                                enemy.play(`${enemyType}_walk_anim`);
+                                if (enemy.floatTween) enemy.floatTween.resume();
+                                else if (this.gameState.zombieFloatTween && enemy === this.gameState.zombie) this.gameState.zombieFloatTween.resume();
+
+                                // Restart movement tween if in final round and was stopped
+                                if (this.gameState.isFinalRound && enemy.moveTween) {
+                                    this.restartEnemyMovement(enemy);
+                                }
                             }
                         }
                     });
                 }
             }
         });
-
     }
 
     playTridentTyphoon() {
         if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
         if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
-        // 1. Charge animation first (+0.2 size increase to 0.8)
-        this.gameState.player.setScale(0.8);
+        // 1. Charge animation first (adjusted to 0.9)
+        this.gameState.player.setScale(0.9);
         this.gameState.player.play('player_charge_anim');
         this.gameState.player.once('animationcomplete-player_charge_anim', () => {
             let randAttackIdx = Math.floor(Math.random() * 9) + 1;
@@ -1447,10 +3039,11 @@ class GamePlay extends Phaser.Scene {
                     this.gameState.player.anims.stop();
                     this.gameState.player.setTexture('player_attack_' + randAttackIdx);
 
+                    this.pauseAllEnemyMovement();
                     this.tweens.add({
                         targets: this.gameState.player,
                         x: this.gameState.zombie.x - 45,
-                        y: 425,
+                        y: this.getBaseY(),
                         duration: 180,
                         ease: 'Quad.easeIn',
                         onComplete: () => {
@@ -1460,7 +3053,7 @@ class GamePlay extends Phaser.Scene {
                             this.tweens.add({ targets: flash, alpha: 0, duration: 180, onComplete: () => flash.destroy() });
 
                             // Shockwave rings
-                            let ring = this.add.circle(this.gameState.zombie.x - 45, 425, 20).setStrokeStyle(4, 0xffffff, 0.8).setDepth(1);
+                            let ring = this.add.circle(this.gameState.zombie.x - 45, this.getBaseY(), 20).setStrokeStyle(4, 0xffffff, 0.8).setDepth(1);
                             this.tweens.add({ targets: ring, radius: 100, alpha: 0, duration: 300, onComplete: () => ring.destroy() });
 
                             // Contact explosion
@@ -1475,7 +3068,7 @@ class GamePlay extends Phaser.Scene {
                             this.tweens.add({
                                 targets: this.gameState.player,
                                 x: 130,
-                                y: 425,
+                                y: this.getBaseY(),
                                 scaleX: 0.6,
                                 scaleY: 0.6,
                                 duration: 300,
@@ -1498,18 +3091,19 @@ class GamePlay extends Phaser.Scene {
         if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
         if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
-        // 1. Charge animation (+0.2 size increase to 0.8)
-        this.gameState.player.setScale(0.8);
+        // 1. Charge animation (adjusted to 0.9)
+        this.gameState.player.setScale(0.9);
         this.gameState.player.play('player_charge_anim');
         this.gameState.player.once('animationcomplete-player_charge_anim', () => {
             let randAttackIdx = Math.floor(Math.random() * 9) + 1;
 
             // 2. Dash next to enemy
             this.gameState.player.play('player_dash_anim');
+            this.pauseAllEnemyMovement();
             this.tweens.add({
                 targets: this.gameState.player,
                 x: this.gameState.zombie.x - 45,
-                y: 425,
+                y: this.getBaseY(),
                 duration: 250,
                 ease: 'Quad.easeOut',
                 onComplete: () => {
@@ -1538,7 +3132,7 @@ class GamePlay extends Phaser.Scene {
                         this.tweens.add({
                             targets: this.gameState.player,
                             x: 130,
-                            y: 425,
+                            y: this.getBaseY(),
                             scaleX: 0.6,
                             scaleY: 0.6,
                             duration: 250,
@@ -1559,14 +3153,15 @@ class GamePlay extends Phaser.Scene {
         if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.pause();
         if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.pause();
 
-        // 1. Charge animation (+0.2 size increase to 0.8)
-        this.gameState.player.setScale(0.8);
+        // 1. Charge animation (adjusted to 0.9)
+        this.gameState.player.setScale(0.9);
         this.gameState.player.play('player_charge_anim');
         this.gameState.player.once('animationcomplete-player_charge_anim', () => {
             let zombieX = this.gameState.zombie.x;
 
             // 1. Dash strike 1
             this.gameState.player.play('player_dash_anim');
+            this.pauseAllEnemyMovement();
             this.tweens.add({
                 targets: this.gameState.player,
                 x: zombieX - 70,
@@ -1602,7 +3197,7 @@ class GamePlay extends Phaser.Scene {
                             this.tweens.add({
                                 targets: this.gameState.player,
                                 x: 130,
-                                y: 425,
+                                y: this.getBaseY(),
                                 scaleX: 0.6,
                                 scaleY: 0.6,
                                 duration: 250,
@@ -1679,8 +3274,12 @@ class GamePlay extends Phaser.Scene {
             strokeThickness: 6
         }).setOrigin(0.5).setDepth(22).setShadow(2, 4, 'rgba(0,0,0,0.3)', 2, false, true);
 
-        // Subtitle text: ยินดีด้วย! คุณผ่านด่านทั้งหมดสำเร็จ
-        let subText = this.add.text(500, 250, 'ยินดีด้วย! ท่านปราบจอมมารและผ่านด่านทั้งหมดสำเร็จ', {
+        // Subtitle text: ยินดีด้วย! คุณผ่านด่านสำเร็จ
+        let subTextStr = (this.gameState.currentStageIdx === 5)
+            ? 'ยินดีด้วย! ท่านปราบจอมมารและผ่านด่านทั้งหมดสำเร็จ'
+            : `ยินดีด้วย! ท่านผ่านด่านที่ ${this.gameState.currentStageIdx + 1} สำเร็จ`;
+
+        let subText = this.add.text(500, 250, subTextStr, {
             fontFamily: 'Kanit, sans-serif',
             fontSize: '22px',
             fontWeight: 'bold',
@@ -1706,10 +3305,59 @@ class GamePlay extends Phaser.Scene {
             delay: 300
         });
 
-        // 4. Buttons: Play Again / Back to Menu
-        let playAgainBtnObj = createChoiceButton(this, 360, 430, 'เล่นอีกครั้ง', () => {
-            this.scene.start('GamePlay', { startStageIdx: 0, charId: this.gameState.charId });
-        }, 220, 60, '26px');
+        // 4. Buttons: Next Stage / Play Again / Back to Menu
+        let playAgainBtnObj;
+        if (this.gameState.currentStageIdx === 5) {
+            playAgainBtnObj = createChoiceButton(this, 360, 430, 'เล่นอีกครั้ง', () => {
+                this.scene.start('GamePlay', { startStageIdx: 0, charId: this.gameState.charId });
+            }, 220, 60, '26px');
+        } else {
+            playAgainBtnObj = createChoiceButton(this, 360, 430, 'ด่านถัดไป', () => {
+                SoundEffects.playNextStage();
+                this.gameState.isGameOver = false;
+                this.gameState.isAnimating = false;
+                
+                // Increment currentStageIdx
+                this.gameState.currentStageIdx++;
+                if (this.gameState.currentStageIdx >= this.gameState.vocabData.length) {
+                    this.gameState.currentStageIdx = 0;
+                }
+                this.gameState.quizQueue = [];
+
+                // Reset player position and change stage
+                this.cameras.main.fade(800, 0, 0, 0, false, (camera, progress) => {
+                    if (progress === 1) {
+                        let bgIndex = this.gameState.currentStageIdx % 6;
+                        this.gameState.bg.setTexture('lvl_bg' + bgIndex);
+                        
+                        let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
+                        this.gameState.stageText.setText(stageName);
+                        this.gameState.stageText.setColor('#ffffff');
+
+                        this.gameState.player.x = -100;
+                        this.gameState.player.y = this.getBaseY();
+                        
+                        // Fade camera back in
+                        this.cameras.main.fadeIn(800, 0, 0, 0);
+
+                        this.tweens.add({
+                            targets: this.gameState.player,
+                            x: 130,
+                            duration: 1000,
+                            ease: 'Power2.easeOut',
+                            onComplete: () => {
+                                this.gameState.player.play('player_idle_anim');
+                                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                this.triggerLuckyStartAnimation(() => {
+                                    this.gameState.isAnimating = false;
+                                    this.nextQuiz();
+                                });
+                            }
+                        });
+                    }
+                });
+            }, 220, 60, '26px');
+        }
         playAgainBtnObj.container.setDepth(22);
         playAgainBtnObj.container.alpha = 0;
 
@@ -1848,6 +3496,7 @@ function createChoiceButton(scene, x, y, textStr, onClick, w = 340, h = 66, fSiz
             body.fillRoundedRect(cx + 2, cy + 2, w - 4, h - 4, 10);
             container.y -= 2; 
         }, 80);
+        SoundEffects.playClick();
         onClick();
     };
 
@@ -1937,6 +3586,8 @@ class GameOverScene extends Phaser.Scene {
         overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
         overlay.fillRect(0, 0, 1000, 600);
 
+        SoundEffects.playGameOver();
+
         // Grand Thai Signboard Frame for Stats (Wider 800px to fit long stage names)
         let statsFrame = this.add.graphics();
         drawThaiFrame(statsFrame, 100, 160, 800, 240, 18);
@@ -1986,119 +3637,6 @@ class GameOverScene extends Phaser.Scene {
     }
 }
 
-class CategoryMenu extends Phaser.Scene {
-    constructor() {
-        super({ key: 'CategoryMenu' });
-    }
-
-    init(data) {
-        this.charId = data && data.charId ? data.charId : 2;
-    }
-
-    create() {
-        let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
-        let overlay = this.add.graphics();
-        overlay.fillStyle(0x0f172a, 0.7); // Friendly slate blue overlay
-        overlay.fillRect(0, 0, 1000, 600);
-
-        this.add.text(500, 70, 'WORD RUSH - เลือกด่าน', {
-            fontFamily: 'Mitr, Kanit, sans-serif',
-            fontSize: '54px',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            stroke: '#1e3e6b',
-            strokeThickness: 6
-        }).setOrigin(0.5).setShadow(2, 4, 'rgba(0,0,0,0.15)', 2, false, true);
-
-        let unlockedStageIdx = parseInt(localStorage.getItem('unlockedStageIdx')) || 0;
-
-        let stages = [
-            { name: 'ด่าน 1: สัตว์', num: '1' },
-            { name: 'ด่าน 2: ร่างกาย', num: '2' },
-            { name: 'ด่าน 3: ผักและผลไม้', num: '3' },
-            { name: 'ด่าน 4: วิทยาศาสตร์', num: '4' },
-            { name: 'ด่าน 5: คอมพิวเตอร์', num: '5' },
-            { name: 'ด่าน 6: ครอบครัว', num: '6' }
-        ];
-        
-        let startX = 220;
-        let startY = 180;
-        let spacingX = 280;
-        let spacingY = 180;
-        
-        stages.forEach((st, i) => {
-            let row = Math.floor(i / 3);
-            let col = i % 3;
-            let cx = startX + (col * spacingX);
-            let cy = startY + (row * spacingY);
-            
-            // Check if this stage is unlocked
-            let isUnlocked = i <= unlockedStageIdx;
-
-            // Premium Slate Card Frame
-            let cardBg = this.add.graphics();
-            // Drop shadow
-            cardBg.fillStyle(0x000000, 0.15);
-            cardBg.fillRoundedRect(cx - 118, cy - 66, 240, 140, 12);
-            // Border: gold if unlocked, slate gray if locked
-            cardBg.fillStyle(isUnlocked ? 0xd97706 : 0x475569, 1);
-            cardBg.fillRoundedRect(cx - 120, cy - 70, 240, 140, 12);
-
-            let cardInner = this.add.graphics();
-            cardInner.fillStyle(isUnlocked ? 0x1e293b : 0x0f172a, 1);
-            cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
-            
-            // Big Number 
-            let numTxt = this.add.text(cx, cy - 15, st.num, {
-                fontFamily: 'Kanit, sans-serif',
-                fontWeight: 'bold',
-                fontSize: '80px',
-                color: isUnlocked ? '#ffffff' : '#475569'
-            }).setOrigin(0.5);
-            
-            // Name Text
-            let titleText = isUnlocked ? st.name : st.name + ' 🔒';
-            let title = this.add.text(cx, cy + 40, titleText, {
-                fontFamily: 'Kanit, sans-serif',
-                fontWeight: 'bold',
-                fontSize: '24px',
-                color: isUnlocked ? '#e2e8f0' : '#475569'
-            }).setOrigin(0.5);
-
-            if (isUnlocked) {
-                // Interaction Zone
-                let zone = this.add.zone(cx, cy, 240, 140).setInteractive({ useHandCursor: true });
-                
-                zone.on('pointerover', () => {
-                    cardInner.clear();
-                    cardInner.fillStyle(0x334155, 1); // Lighter slate on hover
-                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
-                    title.setColor('#fbbf24'); // Gold text
-                    numTxt.setColor('#fbbf24');
-                    this.tweens.add({ targets: [numTxt, title], scale: 1.04, duration: 100 });
-                });
-                
-                zone.on('pointerout', () => {
-                    cardInner.clear();
-                    cardInner.fillStyle(0x1e293b, 1);
-                    cardInner.fillRoundedRect(cx - 118, cy - 68, 236, 136, 10);
-                    title.setColor('#e2e8f0');
-                    numTxt.setColor('#ffffff');
-                    this.tweens.add({ targets: [numTxt, title], scale: 1.0, duration: 100 });
-                });
-                
-                zone.on('pointerdown', () => {
-                    this.scene.start('GamePlay', { startStageIdx: i, charId: this.charId });
-                });
-            }
-        });
-
-        createChoiceButton(this, 500, 520, 'ย้อนกลับ', () => {
-            this.scene.start('MainMenu');
-        });
-    }
-}
-
 // Game Configuration
 const config = {
     type: Phaser.AUTO,
@@ -2114,7 +3652,7 @@ const config = {
         forceSetTimeOut: true
     },
     backgroundColor: '#000000',
-    scene: [MainMenu, CategoryMenu, GamePlay, PauseMenu, SettingsMenu, GameOverScene]
+    scene: [IntroScene, MainMenu, CutsceneScene, CategoryMenu, EndCutsceneScene, GamePlay, PauseMenu, SettingsMenu, GameOverScene]
 };
 
 const game = new Phaser.Game(config);
