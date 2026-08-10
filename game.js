@@ -597,9 +597,9 @@ class CutsceneScene extends Phaser.Scene {
             btnBack.container.setDepth(10);
             this.activeElements.push(btnBack.container);
 
-            // Start Game button (right) - Starts CategoryMenu stage selection
+            // Start Game button (right) - Starts GamePlay stage 1 directly
             let btnStart = createChoiceButton(this, 820, 560, 'เริ่มเกม (START)', () => {
-                this.scene.start('CategoryMenu', { charId: 'thai' });
+                this.scene.start('GamePlay', { startStageIdx: 0, charId: 'thai' });
             }, 180, 44, '18px');
             btnStart.container.setDepth(10);
             this.activeElements.push(btnStart.container);
@@ -813,7 +813,7 @@ class CategoryMenu extends Phaser.Scene {
             let cx = startX + (col * spacingX);
             let cy = startY + (row * spacingY);
             
-            // Check if this stage is unlocked
+            // Check if this stage is unlocked (unlocked if reached)
             let isUnlocked = i <= unlockedStageIdx;
 
             // Premium Slate Card Frame
@@ -894,8 +894,10 @@ class MainMenu extends Phaser.Scene {
     }
 
     create() {
-        // Unlock all stages for testing
-        localStorage.setItem('unlockedStageIdx', 5);
+        // Initialize unlockedStageIdx if not set (so player progression works, but doesn't override existing progression)
+        if (localStorage.getItem('unlockedStageIdx') === null) {
+            localStorage.setItem('unlockedStageIdx', 0);
+        }
         SoundEffects.playBGM();
 
         let bg = this.add.image(500, 300, 'lvl_menu_bg').setDisplaySize(1000, 600);
@@ -2208,7 +2210,7 @@ class GamePlay extends Phaser.Scene {
                             
                             let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
                             this.gameState.stageText.setText(stageName);
-                            this.gameState.stageText.setColor('#ffffff');
+                            this.gameState.stageText.setColor('#1e293b');
 
                             // Spawn player at left offscreen
                             this.gameState.player.x = -100;
@@ -2262,7 +2264,7 @@ class GamePlay extends Phaser.Scene {
             });
             
             this.gameState.stageText.setText(`FINAL ROUND: Wave 1/3 (ศัตรูเหลือ: 0)`);
-            this.gameState.stageText.setColor('#ff9900');
+            this.gameState.stageText.setColor('#c2410c');
             return;
         }
 
@@ -2347,7 +2349,7 @@ class GamePlay extends Phaser.Scene {
         if (this.gameState.isFinalRound) {
             // Update stageText with remaining enemies
             this.gameState.stageText.setText(`FINAL ROUND: Wave ${this.gameState.finalRoundWave}/3 (ศัตรูเหลือ: ${this.gameState.finalRoundEnemies.length})`);
-            this.gameState.stageText.setColor('#ff9900');
+            this.gameState.stageText.setColor('#c2410c');
 
             // Resume walking tweens for all final round enemies
             if (this.gameState.finalRoundEnemies) {
@@ -2647,10 +2649,12 @@ class GamePlay extends Phaser.Scene {
         this.startEnemyMovement(enemySprite, walkDuration);
     }
 
-    dealAttackDamage() {
+    dealAttackDamage(skipSound = false) {
         if (this.gameState.isGameOver) return;
 
-        SoundEffects.playSlash();
+        if (!skipSound) {
+            SoundEffects.playSlash();
+        }
 
         // Flash enemy white for damage indication
         this.gameState.zombie.setTintFill(0xffffff);
@@ -3070,7 +3074,8 @@ class GamePlay extends Phaser.Scene {
                             exp.play('ef3_exp_anim');
                             exp.once('animationcomplete', () => exp.destroy());
 
-                            this.dealAttackDamage();
+                            SoundEffects.playSlash();
+                            this.dealAttackDamage(true);
 
                             // 4. Return with run animation (scale back to idle size 0.6)
                             this.gameState.player.play('player_run_anim');
@@ -3120,6 +3125,9 @@ class GamePlay extends Phaser.Scene {
                     this.gameState.player.anims.stop();
                     this.gameState.player.setTexture('player_attack_' + randAttackIdx);
 
+                    // Play slash sound immediately when reaching the enemy
+                    SoundEffects.playSlash();
+
                     // Lightning strike and screen flash
                     this.cameras.main.shake(200, 0.02);
                     let lightningFlash = this.add.graphics().fillStyle(0x00ffff, 0.5).fillRect(0,0,1000,600).setDepth(20);
@@ -3134,7 +3142,7 @@ class GamePlay extends Phaser.Scene {
                         exp.play('ef3_exp_anim');
                         exp.once('animationcomplete', () => exp.destroy());
 
-                        this.dealAttackDamage();
+                        this.dealAttackDamage(true);
 
                         // Return with run animation (scale back to idle size 0.6)
                         this.gameState.player.play('player_run_anim');
@@ -3180,6 +3188,10 @@ class GamePlay extends Phaser.Scene {
                     this.gameState.player.anims.stop();
                     this.gameState.player.setTexture('player_attack_' + (Math.floor(Math.random() * 9) + 1));
                     this.cameras.main.shake(100, 0.01);
+                    
+                    // Play slash sound immediately on first strike
+                    SoundEffects.playSlash();
+
                     let exp1 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(2).setDepth(5);
                     exp1.play('ef3_exp_anim');
                     exp1.once('animationcomplete', () => exp1.destroy());
@@ -3195,11 +3207,15 @@ class GamePlay extends Phaser.Scene {
                             this.gameState.player.anims.stop();
                             this.gameState.player.setTexture('player_attack_' + (Math.floor(Math.random() * 9) + 1));
                             this.cameras.main.shake(150, 0.015);
-                            let exp2 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(3).setDepth(5);
+                            
+                            // Play slash sound immediately on second strike
+                            SoundEffects.playSlash();
+
+                            let exp2 = this.add.sprite(zombieX, this.gameState.zombie.y - 60, 'ef3_exp1').setScale(3.5).setDepth(5);
                             exp2.play('ef3_exp_anim');
                             exp2.once('animationcomplete', () => exp2.destroy());
 
-                            this.dealAttackDamage();
+                            this.dealAttackDamage(true);
 
                             // 3. Return with run animation (scale back to idle size 0.6)
                             this.gameState.player.play('player_run_anim');
@@ -3341,7 +3357,7 @@ class GamePlay extends Phaser.Scene {
                         
                         let stageName = this.gameState.vocabData[this.gameState.currentStageIdx].stageName;
                         this.gameState.stageText.setText(stageName);
-                        this.gameState.stageText.setColor('#ffffff');
+                        this.gameState.stageText.setColor('#1e293b');
 
                         this.gameState.player.x = -100;
                         this.gameState.player.y = this.getBaseY();
@@ -3561,6 +3577,7 @@ class SettingsMenu extends Phaser.Scene {
         // Reset Score Button
         createChoiceButton(this, 500, 400, 'รีเซ็ตคะแนน', () => {
             localStorage.setItem('zombieHighScore', 0);
+            localStorage.setItem('unlockedStageIdx', 0);
             let prevText = diffLabel.text;
             diffLabel.setText('ล้างข้อมูลเรียบร้อย!');
             diffLabel.setColor('#16a34a');
