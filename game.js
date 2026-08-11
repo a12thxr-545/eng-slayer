@@ -290,14 +290,14 @@ class IntroScene extends Phaser.Scene {
         // Floating Title Container
         let titleContainer = this.add.container(500, 220);
 
-        let titleGlow = this.add.text(0, 0, 'ENGLISH SLAYER', {
+        let titleGlow = this.add.text(0, 0, 'WORD RUSH', {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '84px',
             fontWeight: 'bold',
             color: '#f59e0b'
         }).setOrigin(0.5).setAlpha(0.2).setShadow(0, 0, '#f59e0b', 16, true, true);
 
-        let titleText = this.add.text(0, 0, 'ENGLISH SLAYER', {
+        let titleText = this.add.text(0, 0, 'WORD RUSH', {
             fontFamily: 'Mitr, Kanit, sans-serif',
             fontSize: '80px',
             fontWeight: 'bold',
