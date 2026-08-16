@@ -206,7 +206,7 @@ class IntroScene extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
         this.load.image('player_idle_intro', 'assets/main-character/player-stand/player-stand1.png');
         
         // Preload player run frames for click animation
@@ -244,10 +244,11 @@ class IntroScene extends Phaser.Scene {
             canvas.refresh();
         }
 
-        // Dark premium gradient background
-        let bgGraphics = this.add.graphics();
-        bgGraphics.fillGradientStyle(0x0c071a, 0x0c071a, 0x1f0624, 0x1f0624, 1);
-        bgGraphics.fillRect(0, 0, 1000, 600);
+        // Lobby lab background
+        let bg = this.add.image(500, 300, 'bg_lobby_lab').setDisplaySize(1000, 600);
+        let overlay = this.add.graphics();
+        overlay.fillStyle(0x000000, 0.35);
+        overlay.fillRect(0, 0, 1000, 600);
 
         // Faint glowing glassmorphic elements
         this.add.graphics().fillStyle(0xffaa00, 0.02).fillCircle(180, 180, 280);
@@ -428,7 +429,7 @@ class CutsceneScene extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
         for (let i = 1; i <= 30; i++) {
             this.load.image('cutscene_' + i, 'assets/cutscene/cutscene' + i + '.png');
         }
@@ -573,7 +574,7 @@ class EndCutsceneScene extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
         for (let i = 11; i <= 13; i++) {
             this.load.image('cutscene_' + i, 'assets/cutscene/cutscene' + i + '.png');
         }
@@ -730,7 +731,7 @@ class CategoryMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
         this.load.image('item_heart_stage2', 'assets/item/heart-stage2.png');
         this.load.image('item_fruit_stage3', 'assets/item/fruit-stage3.png');
         this.load.image('item_science_stage4', 'assets/item/science-medicine-tube-satge4.png');
@@ -905,7 +906,7 @@ class CollectionMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_collection_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
         this.load.image('item_heart_stage2', 'assets/item/heart-stage2.png');
         this.load.image('item_fruit_stage3', 'assets/item/fruit-stage3.png');
         this.load.image('item_science_stage4', 'assets/item/science-medicine-tube-satge4.png');
@@ -915,8 +916,8 @@ class CollectionMenu extends Phaser.Scene {
     create() {
         SoundEffects.playBGM();
 
-        // Plain Clean Background
-        this.add.image(500, 300, 'bg_lobby_lab').setDisplaySize(1000, 600);
+        // Plain Clean Background using lobby-lab.png
+        this.add.image(500, 300, 'bg_collection_lab').setDisplaySize(1000, 600);
 
         // 4 Pedestals matching red dots from left to right:
         // 1. heart-stage2.png (Stage 2 Clear -> collected_stage_1)
@@ -968,7 +969,7 @@ class MainMenu extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
         this.load.image('game_logo', 'assets/logo/logo.png?v=' + Date.now());
         this.load.image('player_stand1', 'assets/main-character/player-stand/player-stand1.png');
         
@@ -1531,7 +1532,7 @@ class GamePlay extends Phaser.Scene {
     }
 
     preload() {
-        let loadingText = this.add.text(500, 300, 'กำลังโหลดทรัพยากร...', { fontFamily: 'Kanit, sans-serif', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+        let loadingText = this.add.text(500, 300, 'Loading resources...', { fontFamily: 'Kanit, sans-serif', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
         this.load.on('complete', () => {
             loadingText.destroy();
         });
@@ -3155,9 +3156,11 @@ class GamePlay extends Phaser.Scene {
             ease: 'Quad.easeOut',
             onComplete: () => {
                 this.time.delayedCall(120, () => {
-                    // 2. Full sequential slash combo (Scale 0.88 matches player-stand height)
+                    // 2. Random Attack Frame Pose (Scale 0.88 matches player-stand height, randomly pick attack 1, 2, or 3 - single pose)
+                    let randAttackIdx = Math.floor(Math.random() * 3) + 1;
                     this.gameState.player.setScale(0.88);
-                    this.gameState.player.play('player_attack_anim');
+                    this.gameState.player.anims.stop();
+                    this.gameState.player.setTexture('player_attack_' + randAttackIdx);
 
                     // Impact effects
                     this.cameras.main.shake(220, 0.025);
@@ -3175,24 +3178,22 @@ class GamePlay extends Phaser.Scene {
                     this.dealAttackDamage(true);
 
                     // 3. Return directly to start position after attack completes
-                    this.gameState.player.once('animationcomplete-player_attack_anim', () => {
-                        this.time.delayedCall(150, () => {
-                            this.gameState.player.setScale(0.65);
-                            this.gameState.player.play('player_idle_anim');
-                            this.tweens.add({
-                                targets: this.gameState.player,
-                                x: 130,
-                                y: this.getBaseY(),
-                                scaleX: 0.65,
-                                scaleY: 0.65,
-                                duration: 220,
-                                ease: 'Power2.easeOut',
-                                onComplete: () => {
-                                    this.gameState.player.setScale(0.65);
-                                    if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
-                                    if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
-                                }
-                            });
+                    this.time.delayedCall(300, () => {
+                        this.gameState.player.setScale(0.65);
+                        this.gameState.player.play('player_idle_anim');
+                        this.tweens.add({
+                            targets: this.gameState.player,
+                            x: 130,
+                            y: this.getBaseY(),
+                            scaleX: 0.65,
+                            scaleY: 0.65,
+                            duration: 220,
+                            ease: 'Power2.easeOut',
+                            onComplete: () => {
+                                this.gameState.player.setScale(0.65);
+                                if (this.gameState.playerIdleTween) this.gameState.playerIdleTween.resume();
+                                if (this.gameState.playerSwayTween) this.gameState.playerSwayTween.resume();
+                            }
                         });
                     });
                 });
@@ -3523,7 +3524,7 @@ class PauseMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
     }
 
     create() {
@@ -3660,7 +3661,7 @@ class SettingsMenu extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
     }
 
     create() {
@@ -3796,7 +3797,7 @@ class GameOverScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab.png?v=' + Date.now());
+        this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
     }
 
     init(data) {
