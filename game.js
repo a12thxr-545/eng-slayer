@@ -405,10 +405,10 @@ const CUTSCENE_GROUPS = {
     1: { name: "Stage 1 Intro", images: [1, 2, 3, 4, 5], nextStageIdx: 0 },
     2: { name: "Stage 2 Intro", images: [6, 7, 8], nextStageIdx: 1 },
     3: { name: "Stage 3 Intro", images: [9, 10, 11], nextStageIdx: 2 },
-    4: { name: "Stage 4 Intro", images: [12, 13, 14, 15, 16, 17, 18, 19, 20], nextStageIdx: 3 },
+    4: { name: "Stage 4 Intro", images: [12, 13, 14, 15, '15.1', 16, 17, 18, 19, 20], nextStageIdx: 3 },
     5: { name: "Stage 5 Intro", images: [21, 22, 23, 24], nextStageIdx: 4 },
     6: { name: "Stage 6 Intro", images: [25, 26], nextStageIdx: 5 },
-    7: { name: "Game Ending", images: [27, 28, 29, 30], isEnding: true }
+    7: { name: "Game Ending", images: [27, 28, 29, 30, 31], isEnding: true }
 };
 
 class CutsceneScene extends Phaser.Scene {
@@ -430,9 +430,14 @@ class CutsceneScene extends Phaser.Scene {
         });
 
         this.load.image('bg_lobby_lab', 'assets/background/lobby-lab1.png?v=' + Date.now());
-        for (let i = 1; i <= 30; i++) {
-            this.load.image('cutscene_' + i, 'assets/cutscene/cutscene' + i + '.png');
-        }
+        const cutscenesToLoad = [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            11, 12, 13, 14, 15, '15.1', 16, 17, 18, 19, 20,
+            21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+        ];
+        cutscenesToLoad.forEach(id => {
+            this.load.image('cutscene_' + id, 'assets/cutscene/cutscene' + id + '.png');
+        });
     }
 
     create() {
