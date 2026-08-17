@@ -2128,7 +2128,7 @@ class GamePlay extends Phaser.Scene {
         // Setup Dog Lucky Summon Skill Button (Unlocked after Stage 3 clear)
         let isSummonUnlocked = (localStorage.getItem('collected_stage_2') === 'true') || (this.gameState.currentStageIdx >= 3);
         if (isSummonUnlocked) {
-            this.gameState.summonBtn = createChoiceButton(this, 500, 490, 'SUMMON LUCKY (เรียกสัตว์เลี้ยงช่วยสู้)', () => {
+            this.gameState.summonBtn = createChoiceButton(this, 500, 490, 'SUMMON LUCKY (Call Pet)', () => {
                 this.triggerDogLuckySummon();
             }, 360, 48, '18px');
             this.gameState.summonBtn.container.setDepth(15);
@@ -2186,7 +2186,7 @@ class GamePlay extends Phaser.Scene {
             this.gameState.summonBtn.container.setVisible(false);
         }
 
-        let remainingTip = this.add.text(500, 240, `สหายสี่ขาออกศึก! (เหลือ ${remaining} ครั้งในด่านนี้)`, {
+        let remainingTip = this.add.text(500, 240, `Pet joins the battle! (${remaining} left in this stage)`, {
             fontFamily: 'Kanit, sans-serif', fontSize: '20px', fontWeight: 'bold', color: '#38bdf8', stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(30);
         this.tweens.add({ targets: remainingTip, alpha: 0, y: 200, duration: 1400, onComplete: () => remainingTip.destroy() });
@@ -2478,7 +2478,7 @@ class GamePlay extends Phaser.Scene {
 
             SoundEffects.playWaveBoss();
 
-            let finalWarning = this.add.text(500, 300, 'รอบสุดท้าย! เผชิญหน้าฝูงศัตรู!', { 
+            let finalWarning = this.add.text(500, 300, 'FINAL ROUND! FACE THE ENEMY HORDE!', { 
                 fontFamily: 'Kanit, sans-serif', fontSize: '56px', fontWeight: 'bold', color: '#ff9900', stroke: '#ffffff', strokeThickness: 8 
             }).setOrigin(0.5).setDepth(20);
             
@@ -2494,7 +2494,7 @@ class GamePlay extends Phaser.Scene {
                 }
             });
             
-            this.gameState.stageText.setText(`FINAL ROUND: Wave 1/3 (ศัตรูเหลือ: 0)`);
+            this.gameState.stageText.setText(`FINAL ROUND: Wave 1/3 (Enemies left: 0)`);
             this.gameState.stageText.setColor('#c2410c');
             return;
         }
@@ -2579,7 +2579,7 @@ class GamePlay extends Phaser.Scene {
 
         if (this.gameState.isFinalRound) {
             // Update stageText with remaining enemies
-            this.gameState.stageText.setText(`FINAL ROUND: Wave ${this.gameState.finalRoundWave}/3 (ศัตรูเหลือ: ${this.gameState.finalRoundEnemies.length})`);
+            this.gameState.stageText.setText(`FINAL ROUND: Wave ${this.gameState.finalRoundWave}/3 (Enemies left: ${this.gameState.finalRoundEnemies.length})`);
             this.gameState.stageText.setColor('#c2410c');
 
             // Resume walking tweens for all final round enemies
@@ -2907,7 +2907,7 @@ class GamePlay extends Phaser.Scene {
                 if (this.gameState.finalRoundWave < 3) {
                     this.gameState.finalRoundWave++;
                     
-                    let waveText = this.add.text(500, 300, `รอบที่ ${this.gameState.finalRoundWave - 1} สำเร็จ!`, {
+                    let waveText = this.add.text(500, 300, `WAVE ${this.gameState.finalRoundWave - 1} CLEARED!`, {
                         fontFamily: 'Kanit, sans-serif', fontWeight: 'bold', fontSize: '60px', color: '#ffcc00', stroke: '#000000', strokeThickness: 8
                     }).setOrigin(0.5).setDepth(20);
                     
